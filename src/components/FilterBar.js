@@ -30,7 +30,7 @@ const FilterBar = ({selectedFilter, onFilterChange, selectedSort, onSortChange})
                 selectedFilter === filter.key && styles.filterButtonActive,
               ]}
               onPress={() => onFilterChange(filter.key)}>
-              <Icon
+              <Ionicons
                 name={filter.icon}
                 size={16}
                 color={
@@ -66,7 +66,7 @@ const FilterBar = ({selectedFilter, onFilterChange, selectedSort, onSortChange})
                 selectedSort === sort.key && styles.sortButtonActive,
               ]}
               onPress={() => onSortChange(sort.key)}>
-              <Icon
+              <Ionicons
                 name={sort.icon}
                 size={14}
                 color={selectedSort === sort.key ? '#007AFF' : '#8E8E93'}
