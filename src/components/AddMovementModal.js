@@ -95,7 +95,7 @@ const AddMovementModal = ({visible, onClose, onSave, debtor}) => {
                       {borderColor: item.color},
                     ]}
                     onPress={() => setSelectedType(item.type)}>
-                    <Icon
+                    <Ionicons
                       name={item.icon}
                       size={32}
                       color={selectedType === item.type ? item.color : '#8E8E93'}
