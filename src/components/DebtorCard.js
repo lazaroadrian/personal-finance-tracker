@@ -97,7 +97,7 @@ const DebtorCard = ({debtor, onDelete, onAddMovement, onViewHistory, movements})
         <TouchableOpacity
           style={styles.actionButton}
           onPress={() => setExpanded(!expanded)}>
-          <Icon
+          <Ionicons
             name={expanded ? 'chevron-up' : 'chevron-down'}
             size={20}
             color="#666"
