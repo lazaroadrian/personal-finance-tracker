@@ -10,7 +10,7 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
-import Icon from 'react-native-vector-icons/Ionicons';
+import { Ionicons } from '@expo/vector-icons';
 
 const AddDebtorModal = ({visible, onClose, onSave}) => {
   const [name, setName] = useState('');
@@ -67,7 +67,7 @@ const AddDebtorModal = ({visible, onClose, onSave}) => {
           <View style={styles.modalHeader}>
             <Text style={styles.modalTitle}>Agregar Deudor</Text>
             <TouchableOpacity onPress={handleClose}>
-              <Icon name="close" size={28} color="#1C1C1E" />
+              <Ionicons name="close" size={28} color="#1C1C1E" />
             </TouchableOpacity>
           </View>
 

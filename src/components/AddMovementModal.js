@@ -10,7 +10,7 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
-import Icon from 'react-native-vector-icons/Ionicons';
+import { Ionicons } from '@expo/vector-icons';
 
 const AddMovementModal = ({visible, onClose, onSave, debtor}) => {
   const [amount, setAmount] = useState('');
@@ -78,7 +78,7 @@ const AddMovementModal = ({visible, onClose, onSave, debtor}) => {
               <Text style={styles.debtorName}>{debtor.name}</Text>
             </View>
             <TouchableOpacity onPress={handleClose}>
-              <Icon name="close" size={28} color="#1C1C1E" />
+              <Ionicons name="close" size={28} color="#1C1C1E" />
             </TouchableOpacity>
           </View>
 
@@ -159,7 +159,7 @@ const AddMovementModal = ({visible, onClose, onSave, debtor}) => {
                     ${Math.abs(parseFloat(debtor.balance)).toFixed(2)}
                   </Text>
                 </View>
-                <Icon name="arrow-down" size={20} color="#8E8E93" style={{alignSelf: 'center'}} />
+                <Ionicons name="arrow-down" size={20} color="#8E8E93" style={{alignSelf: 'center'}} />
                 <View style={styles.previewContent}>
                   <Text style={styles.previewLabel}>Nuevo saldo:</Text>
                   <Text

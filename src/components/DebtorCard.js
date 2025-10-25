@@ -8,7 +8,7 @@ import {
   Alert,
   Animated,
 } from 'react-native';
-import Icon from 'react-native-vector-icons/Ionicons';
+import { Ionicons } from '@expo/vector-icons';
 
 const DebtorCard = ({debtor, onDelete, onAddMovement, onViewHistory, movements}) => {
   const [expanded, setExpanded] = useState(false);
@@ -83,14 +83,14 @@ const DebtorCard = ({debtor, onDelete, onAddMovement, onViewHistory, movements})
 
       <View style={styles.cardActions}>
         <TouchableOpacity style={styles.actionButton} onPress={openWhatsApp}>
-          <Icon name="logo-whatsapp" size={20} color="#25D366" />
+          <Ionicons name="logo-whatsapp" size={20} color="#25D366" />
           <Text style={styles.actionText}>WhatsApp</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
           style={styles.actionButton}
           onPress={() => onAddMovement(debtor)}>
-          <Icon name="add-circle-outline" size={20} color="#007AFF" />
+          <Ionicons name="add-circle-outline" size={20} color="#007AFF" />
           <Text style={styles.actionText}>Movimiento</Text>
         </TouchableOpacity>
 
@@ -106,7 +106,7 @@ const DebtorCard = ({debtor, onDelete, onAddMovement, onViewHistory, movements})
         </TouchableOpacity>
 
         <TouchableOpacity style={styles.actionButton} onPress={handleDelete}>
-          <Icon name="trash-outline" size={20} color="#FF3B30" />
+          <Ionicons name="trash-outline" size={20} color="#FF3B30" />
           <Text style={[styles.actionText, {color: '#FF3B30'}]}>Eliminar</Text>
         </TouchableOpacity>
       </View>

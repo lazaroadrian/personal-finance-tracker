@@ -1,11 +1,11 @@
 import React from 'react';
 import {View, TextInput, StyleSheet, TouchableOpacity} from 'react-native';
-import Icon from 'react-native-vector-icons/Ionicons';
+import { Ionicons } from '@expo/vector-icons';
 
 const SearchBar = ({searchQuery, onSearchChange, onClear}) => {
   return (
     <View style={styles.container}>
-      <Icon name="search" size={20} color="#8E8E93" style={styles.searchIcon} />
+      <Ionicons name="search" size={20} color="#8E8E93" style={styles.searchIcon} />
       <TextInput
         style={styles.input}
         placeholder="Buscar por nombre o teléfono..."
@@ -15,7 +15,7 @@ const SearchBar = ({searchQuery, onSearchChange, onClear}) => {
       />
       {searchQuery.length > 0 && (
         <TouchableOpacity onPress={onClear} style={styles.clearButton}>
-          <Icon name="close-circle" size={20} color="#8E8E93" />
+          <Ionicons name="close-circle" size={20} color="#8E8E93" />
         </TouchableOpacity>
       )}
     </View>

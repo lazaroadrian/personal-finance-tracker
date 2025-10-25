@@ -10,7 +10,7 @@ import {
   ActivityIndicator,
   Alert,
 } from 'react-native';
-import Icon from 'react-native-vector-icons/Ionicons';
+import { Ionicons } from '@expo/vector-icons';
 import DatabaseService from './src/services/DatabaseService';
 import DebtorCard from './src/components/DebtorCard';
 import AddDebtorModal from './src/components/AddDebtorModal';
@@ -238,7 +238,7 @@ function App() {
 
   const renderEmptyList = () => (
     <View style={styles.emptyContainer}>
-      <Icon name="people-outline" size={80} color="#C7C7CC" />
+      <Ionicons name="people-outline" size={80} color="#C7C7CC" />
       <Text style={styles.emptyTitle}>No hay deudores</Text>
       <Text style={styles.emptySubtitle}>
         {searchQuery || selectedFilter !== 'all'
@@ -284,7 +284,7 @@ function App() {
         <TouchableOpacity
           style={styles.addButton}
           onPress={() => setShowAddDebtorModal(true)}>
-          <Icon name="add" size={28} color="#FFFFFF" />
+          <Ionicons name="add" size={28} color="#FFFFFF" />
         </TouchableOpacity>
       </View>
 
