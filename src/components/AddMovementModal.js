@@ -159,7 +159,9 @@ const AddMovementModal = ({visible, onClose, onSave, debtor}) => {
                     ${Math.abs(parseFloat(debtor.balance)).toFixed(2)}
                   </Text>
                 </View>
-                <Ionicons name="arrow-down" size={20} color="#8E8E93" style={{alignSelf: 'center'}} />
+                <View style={{alignItems: 'center'}}>
+                  <Ionicons name="arrow-down" size={20} color="#8E8E93" />
+                </View>
                 <View style={styles.previewContent}>
                   <Text style={styles.previewLabel}>Nuevo saldo:</Text>
                   <Text
