@@ -25,6 +25,20 @@ class DatabaseService {
     }
   }
 
+  // Función auxiliar para obtener la fecha/hora en zona horaria de Cuba
+  getCurrentDateTime() {
+    return new Date().toLocaleString('en-US', { 
+      timeZone: 'America/Havana',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: false
+    }).replace(/(\d+)\/(\d+)\/(\d+),\s(\d+):(\d+):(\d+)/, '$3-$1-$2 $4:$5:$6');
+  }
+
   async createTables() {
     try {
       // Tabla de deudores
@@ -35,8 +49,8 @@ class DatabaseService {
           phone TEXT NOT NULL,
           balance REAL DEFAULT 0,
           whatsapp_message TEXT DEFAULT 'Hola {name}, te contacto sobre el saldo pendiente de $balance.',
-          created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-          updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+          created_at DATETIME,
+          updated_at DATETIME
         );
       `);
 
@@ -48,7 +62,7 @@ class DatabaseService {
           amount REAL NOT NULL,
           type TEXT NOT NULL,
           description TEXT,
-          created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+          created_at DATETIME,
           FOREIGN KEY (debtor_id) REFERENCES debtors (id) ON DELETE CASCADE
         );
       `);
@@ -66,10 +80,11 @@ class DatabaseService {
     try {
       const defaultMessage = `Hola ${name}, te contacto sobre el saldo pendiente de $${initialBalance}.`;
       const message = whatsappMessage || defaultMessage;
+      const now = this.getCurrentDateTime();
 
       const result = await this.db.runAsync(
-        'INSERT INTO debtors (name, phone, balance, whatsapp_message) VALUES (?, ?, ?, ?)',
-        [name, phone, initialBalance, message]
+        'INSERT INTO debtors (name, phone, balance, whatsapp_message, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)',
+        [name, phone, initialBalance, message, now, now]
       );
       
       const debtorId = result.lastInsertRowId;
@@ -78,8 +93,8 @@ class DatabaseService {
       if (initialBalance !== 0) {
         const type = initialBalance > 0 ? 'Le presté' : 'Me prestó';
         await this.db.runAsync(
-          'INSERT INTO movements (debtor_id, amount, type, description) VALUES (?, ?, ?, ?)',
-          [debtorId, Math.abs(initialBalance), type, 'Saldo inicial']
+          'INSERT INTO movements (debtor_id, amount, type, description, created_at) VALUES (?, ?, ?, ?, ?)',
+          [debtorId, Math.abs(initialBalance), type, 'Saldo inicial', now]
         );
       }
       
@@ -112,9 +127,10 @@ class DatabaseService {
 
   async updateDebtor(id, name, phone, whatsappMessage) {
     try {
+      const now = this.getCurrentDateTime();
       const result = await this.db.runAsync(
-        'UPDATE debtors SET name = ?, phone = ?, whatsapp_message = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?',
-        [name, phone, whatsappMessage, id]
+        'UPDATE debtors SET name = ?, phone = ?, whatsapp_message = ?, updated_at = ? WHERE id = ?',
+        [name, phone, whatsappMessage, now, id]
       );
       return result;
     } catch (error) {
@@ -140,10 +156,12 @@ class DatabaseService {
 
   async addMovement(debtorId, amount, type, description = '') {
     try {
+      const now = this.getCurrentDateTime();
+      
       // Agregar el movimiento
       await this.db.runAsync(
-        'INSERT INTO movements (debtor_id, amount, type, description) VALUES (?, ?, ?, ?)',
-        [debtorId, amount, type, description]
+        'INSERT INTO movements (debtor_id, amount, type, description, created_at) VALUES (?, ?, ?, ?, ?)',
+        [debtorId, amount, type, description, now]
       );
 
       // Actualizar el balance del deudor
@@ -159,8 +177,8 @@ class DatabaseService {
       }
 
       const result = await this.db.runAsync(
-        'UPDATE debtors SET balance = balance + ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?',
-        [balanceChange, debtorId]
+        'UPDATE debtors SET balance = balance + ?, updated_at = ? WHERE id = ?',
+        [balanceChange, now, debtorId]
       );
       
       return result;

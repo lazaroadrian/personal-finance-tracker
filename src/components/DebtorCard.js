@@ -51,7 +51,8 @@ const DebtorCard = ({debtor, onDelete, onAddMovement, onEdit, movements}) => {
 
   const formatDate = (dateString) => {
     const date = new Date(dateString);
-    return date.toLocaleDateString('es-ES', {
+    return date.toLocaleString('es-ES', {
+      timeZone: 'America/Havana',
       day: '2-digit',
       month: '2-digit',
       year: 'numeric',

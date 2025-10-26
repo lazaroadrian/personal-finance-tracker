@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "Gestor de Cuentas",
-    "slug": "gestor-cuentas",
+    "slug": "gestion-deudas",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -42,7 +42,7 @@
     ],
     "extra": {
       "eas": {
-        "projectId": "14ac51b0-1bad-48db-a140-f3543d90a751"
+        "projectId": "e3adcc89-2941-455b-bd5c-40ee86596d31"
       }
     }
   }
