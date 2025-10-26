@@ -292,7 +292,7 @@ function App() {
       {/* Header */}
       <View style={styles.header}>
         <View>
-          <Text style={styles.headerTitle}>Gestión de Deudas</Text>
+          <Text style={styles.headerTitle}>Gestor de Cuentas</Text>
           <Text style={styles.headerSubtitle}>
             Balance neto: ${' '}
             <Text

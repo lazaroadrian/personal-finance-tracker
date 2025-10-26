@@ -1,11 +1,12 @@
 {
   "expo": {
-    "name": "Gestión de Deudas",
-    "slug": "gestion-deudas",
+    "name": "Gestor de Cuentas",
+    "slug": "gestor-cuentas",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
+    "timezone": "America/Havana",
     "splash": {
       "image": "./assets/splash.png",
       "resizeMode": "contain",
@@ -38,6 +39,11 @@
     "plugins": [
       "expo-sqlite",
       "expo-asset"
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "14ac51b0-1bad-48db-a140-f3543d90a751"
+      }
+    }
   }
 }
