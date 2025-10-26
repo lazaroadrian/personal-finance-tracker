@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
-const DebtorCard = ({debtor, onDelete, onAddMovement, onViewHistory, movements}) => {
+const DebtorCard = ({debtor, onDelete, onAddMovement, onEdit, movements}) => {
   const [expanded, setExpanded] = useState(false);
   const balance = parseFloat(debtor.balance) || 0;
   const isPositive = balance >= 0;
@@ -103,6 +103,13 @@ const DebtorCard = ({debtor, onDelete, onAddMovement, onViewHistory, movements})
             color="#666"
           />
           <Text style={styles.actionText}>Historial</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.actionButton}
+          onPress={() => onEdit(debtor)}>
+          <Ionicons name="create-outline" size={20} color="#FF9500" />
+          <Text style={[styles.actionText, {color: '#FF9500'}]}>Editar</Text>
         </TouchableOpacity>
 
         <TouchableOpacity style={styles.actionButton} onPress={handleDelete}>

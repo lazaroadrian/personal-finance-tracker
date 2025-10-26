@@ -15,6 +15,7 @@ import DatabaseService from './src/services/DatabaseService';
 import DebtorCard from './src/components/DebtorCard';
 import AddDebtorModal from './src/components/AddDebtorModal';
 import AddMovementModal from './src/components/AddMovementModal';
+import EditDebtorModal from './src/components/EditDebtorModal';
 import FilterBar from './src/components/FilterBar';
 import SearchBar from './src/components/SearchBar';
 
@@ -33,6 +34,7 @@ function App() {
   // Estados de modales
   const [showAddDebtorModal, setShowAddDebtorModal] = useState(false);
   const [showAddMovementModal, setShowAddMovementModal] = useState(false);
+  const [showEditDebtorModal, setShowEditDebtorModal] = useState(false);
   const [selectedDebtor, setSelectedDebtor] = useState(null);
 
   // Estados de filtros y búsqueda
@@ -123,6 +125,29 @@ function App() {
   const handleAddMovement = debtor => {
     setSelectedDebtor(debtor);
     setShowAddMovementModal(true);
+  };
+
+  const handleEditDebtor = debtor => {
+    setSelectedDebtor(debtor);
+    setShowEditDebtorModal(true);
+  };
+
+  const handleSaveEdit = async debtorData => {
+    try {
+      await DatabaseService.updateDebtor(
+        debtorData.id,
+        debtorData.name,
+        debtorData.phone,
+        debtorData.whatsappMessage
+      );
+      await loadDebtors();
+      setShowEditDebtorModal(false);
+      setSelectedDebtor(null);
+      Alert.alert('Éxito', 'Deudor actualizado correctamente');
+    } catch (error) {
+      console.error('Error updating debtor:', error);
+      Alert.alert('Error', 'No se pudo actualizar el deudor');
+    }
   };
 
   const handleSaveMovement = async movementData => {
@@ -297,6 +322,7 @@ function App() {
             debtor={item}
             onDelete={handleDeleteDebtor}
             onAddMovement={handleAddMovement}
+            onEdit={handleEditDebtor}
             movements={movements[item.id] || []}
           />
         )}
@@ -321,6 +347,16 @@ function App() {
           setSelectedDebtor(null);
         }}
         onSave={handleSaveMovement}
+        debtor={selectedDebtor}
+      />
+
+      <EditDebtorModal
+        visible={showEditDebtorModal}
+        onClose={() => {
+          setShowEditDebtorModal(false);
+          setSelectedDebtor(null);
+        }}
+        onSave={handleSaveEdit}
         debtor={selectedDebtor}
       />
     </SafeAreaView>
