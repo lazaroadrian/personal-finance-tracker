@@ -146,9 +146,19 @@ const DebtorCard = ({debtor, onDelete, onAddMovement, onEdit, movements}) => {
             movements.map((movement, index) => (
               <View key={index} style={styles.movementItem}>
                 <View style={styles.movementHeader}>
-                  <Text style={styles.movementType}>{movement.type}</Text>
-                  <Text style={styles.movementAmount}>
-                    ${parseFloat(movement.amount).toFixed(2)}
+                  <Text style={[
+                    styles.movementType,
+                    (movement.type === 'Me prestó' || movement.type === 'Le pagué')
+                      ? {color: '#FF3B30'}
+                      : {color: '#34C759'}
+                  ]}>{movement.type}</Text>
+                  <Text style={[
+                    styles.movementAmount,
+                    (movement.type === 'Me prestó' || movement.type === 'Le pagué')
+                      ? {color: '#FF3B30'}
+                      : {color: '#34C759'}
+                  ]}>
+                    {(movement.type === 'Me prestó' || movement.type === 'Le pagué') ? '-' : '+'}${parseFloat(movement.amount).toFixed(2)}
                   </Text>
                 </View>
                 <Text style={styles.movementDate}>

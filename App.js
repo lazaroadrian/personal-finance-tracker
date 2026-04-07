@@ -237,19 +237,19 @@ function App() {
     <View>
       {/* Resumen de estadísticas */}
       <View style={styles.statsContainer}>
-        <View style={styles.statCard}>
-          <Text style={styles.statLabel}>Total Deudores</Text>
+        <View style={[styles.statCard, {flex: 0.7}]}>
+          <Text style={styles.statLabel}>Deudores</Text>
           <Text style={styles.statValue}>{stats.total_debtors || 0}</Text>
         </View>
-        <View style={[styles.statCard, styles.positiveCard]}>
+        <View style={[styles.statCard, styles.positiveCard, {flex: 1.15}]}>
           <Text style={styles.statLabel}>Me deben</Text>
-          <Text style={[styles.statValue, styles.positiveValue]}>
+          <Text style={[styles.statValue, styles.positiveValue]} numberOfLines={1} adjustsFontSizeToFit>
             ${Math.abs(stats.total_owed_to_me || 0).toFixed(2)}
           </Text>
         </View>
-        <View style={[styles.statCard, styles.negativeCard]}>
+        <View style={[styles.statCard, styles.negativeCard, {flex: 1.15}]}>
           <Text style={styles.statLabel}>Les debo</Text>
-          <Text style={[styles.statValue, styles.negativeValue]}>
+          <Text style={[styles.statValue, styles.negativeValue]} numberOfLines={1} adjustsFontSizeToFit>
             -${Math.abs(stats.total_i_owe || 0).toFixed(2)}
           </Text>
         </View>
