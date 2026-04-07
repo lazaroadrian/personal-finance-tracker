@@ -3,8 +3,15 @@ import * as SQLite from 'expo-sqlite';
 const database_name = 'DebtManager.db';
 
 class DatabaseService {
+  constructor() {
+    this.db = null;
+  }
+
   async initDB() {
     try {
+      if (this.db) {
+        return this.db;
+      }
       this.db = await SQLite.openDatabaseAsync(database_name);
       console.log('Database OPEN');
       await this.createTables();
@@ -15,10 +22,18 @@ class DatabaseService {
     }
   }
 
+  async getDB() {
+    if (!this.db) {
+      await this.initDB();
+    }
+    return this.db;
+  }
+
   async closeDatabase() {
     if (this.db) {
       console.log('Closing database');
       await this.db.closeAsync();
+      this.db = null;
       console.log('Database CLOSED');
     } else {
       console.log('Database was not OPEN');
@@ -41,7 +56,7 @@ class DatabaseService {
 
   async createTables() {
     try {
-      // Tabla de deudores
+      // createTables se llama solo desde initDB, donde this.db ya está asignado
       await this.db.execAsync(`
         CREATE TABLE IF NOT EXISTS debtors (
           id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -78,11 +93,12 @@ class DatabaseService {
 
   async addDebtor(name, phone, initialBalance = 0, whatsappMessage = null) {
     try {
+      const db = await this.getDB();
       const defaultMessage = `Hola ${name}, te contacto sobre el saldo pendiente de $${initialBalance}.`;
       const message = whatsappMessage || defaultMessage;
       const now = this.getCurrentDateTime();
 
-      const result = await this.db.runAsync(
+      const result = await db.runAsync(
         'INSERT INTO debtors (name, phone, balance, whatsapp_message, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)',
         [name, phone, initialBalance, message, now, now]
       );
@@ -92,7 +108,7 @@ class DatabaseService {
       // Si hay un saldo inicial, crear el primer movimiento
       if (initialBalance !== 0) {
         const type = initialBalance > 0 ? 'Le presté' : 'Me prestó';
-        await this.db.runAsync(
+        await db.runAsync(
           'INSERT INTO movements (debtor_id, amount, type, description, created_at) VALUES (?, ?, ?, ?, ?)',
           [debtorId, Math.abs(initialBalance), type, 'Saldo inicial', now]
         );
@@ -107,7 +123,8 @@ class DatabaseService {
 
   async getAllDebtors() {
     try {
-      const debtors = await this.db.getAllAsync('SELECT * FROM debtors ORDER BY updated_at DESC');
+      const db = await this.getDB();
+      const debtors = await db.getAllAsync('SELECT * FROM debtors ORDER BY updated_at DESC');
       return debtors;
     } catch (error) {
       console.log('Error getting debtors: ', error);
@@ -117,7 +134,8 @@ class DatabaseService {
 
   async getDebtorById(id) {
     try {
-      const debtor = await this.db.getFirstAsync('SELECT * FROM debtors WHERE id = ?', [id]);
+      const db = await this.getDB();
+      const debtor = await db.getFirstAsync('SELECT * FROM debtors WHERE id = ?', [id]);
       return debtor;
     } catch (error) {
       console.log('Error getting debtor: ', error);
@@ -127,8 +145,9 @@ class DatabaseService {
 
   async updateDebtor(id, name, phone, whatsappMessage) {
     try {
+      const db = await this.getDB();
       const now = this.getCurrentDateTime();
-      const result = await this.db.runAsync(
+      const result = await db.runAsync(
         'UPDATE debtors SET name = ?, phone = ?, whatsapp_message = ?, updated_at = ? WHERE id = ?',
         [name, phone, whatsappMessage, now, id]
       );
@@ -141,10 +160,11 @@ class DatabaseService {
 
   async deleteDebtor(id) {
     try {
+      const db = await this.getDB();
       // Primero eliminar todos los movimientos asociados
-      await this.db.runAsync('DELETE FROM movements WHERE debtor_id = ?', [id]);
+      await db.runAsync('DELETE FROM movements WHERE debtor_id = ?', [id]);
       // Luego eliminar el deudor
-      const result = await this.db.runAsync('DELETE FROM debtors WHERE id = ?', [id]);
+      const result = await db.runAsync('DELETE FROM debtors WHERE id = ?', [id]);
       return result;
     } catch (error) {
       console.log('Error deleting debtor: ', error);
@@ -156,10 +176,11 @@ class DatabaseService {
 
   async addMovement(debtorId, amount, type, description = '') {
     try {
+      const db = await this.getDB();
       const now = this.getCurrentDateTime();
       
       // Agregar el movimiento
-      await this.db.runAsync(
+      await db.runAsync(
         'INSERT INTO movements (debtor_id, amount, type, description, created_at) VALUES (?, ?, ?, ?, ?)',
         [debtorId, amount, type, description, now]
       );
@@ -176,7 +197,7 @@ class DatabaseService {
         balanceChange = amount; // Disminuye lo que yo debo (menos negativo)
       }
 
-      const result = await this.db.runAsync(
+      const result = await db.runAsync(
         'UPDATE debtors SET balance = balance + ?, updated_at = ? WHERE id = ?',
         [balanceChange, now, debtorId]
       );
@@ -190,7 +211,8 @@ class DatabaseService {
 
   async getMovementsByDebtor(debtorId) {
     try {
-      const movements = await this.db.getAllAsync(
+      const db = await this.getDB();
+      const movements = await db.getAllAsync(
         'SELECT * FROM movements WHERE debtor_id = ? ORDER BY created_at DESC',
         [debtorId]
       );
@@ -205,7 +227,8 @@ class DatabaseService {
 
   async getTotalStats() {
     try {
-      const result = await this.db.getFirstAsync(`
+      const db = await this.getDB();
+      const result = await db.getFirstAsync(`
         SELECT 
           SUM(CASE WHEN balance > 0 THEN balance ELSE 0 END) as total_owed_to_me,
           SUM(CASE WHEN balance < 0 THEN balance ELSE 0 END) as total_i_owe,
@@ -230,8 +253,9 @@ class DatabaseService {
 
   async exportData() {
     try {
-      const debtors = await this.db.getAllAsync('SELECT * FROM debtors');
-      const movements = await this.db.getAllAsync('SELECT * FROM movements ORDER BY created_at ASC');
+      const db = await this.getDB();
+      const debtors = await db.getAllAsync('SELECT * FROM debtors');
+      const movements = await db.getAllAsync('SELECT * FROM movements ORDER BY created_at ASC');
       
       return {
         version: 1,
@@ -248,17 +272,18 @@ class DatabaseService {
 
   async importData(data) {
     try {
+      const db = await this.getDB();
       if (!data || !data.debtors || !data.movements) {
         throw new Error('Formato de backup inválido');
       }
 
       // Eliminar datos actuales
-      await this.db.execAsync('DELETE FROM movements');
-      await this.db.execAsync('DELETE FROM debtors');
+      await db.execAsync('DELETE FROM movements');
+      await db.execAsync('DELETE FROM debtors');
 
       // Importar deudores
       for (const debtor of data.debtors) {
-        await this.db.runAsync(
+        await db.runAsync(
           'INSERT INTO debtors (id, name, phone, balance, whatsapp_message, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)',
           [debtor.id, debtor.name, debtor.phone, debtor.balance, debtor.whatsapp_message, debtor.created_at, debtor.updated_at]
         );
@@ -266,7 +291,7 @@ class DatabaseService {
 
       // Importar movimientos
       for (const movement of data.movements) {
-        await this.db.runAsync(
+        await db.runAsync(
           'INSERT INTO movements (id, debtor_id, amount, type, description, created_at) VALUES (?, ?, ?, ?, ?, ?)',
           [movement.id, movement.debtor_id, movement.amount, movement.type, movement.description, movement.created_at]
         );
