@@ -14,7 +14,7 @@ import { Ionicons } from '@expo/vector-icons';
 
 const AddMovementModal = ({visible, onClose, onSave, debtor}) => {
   const [amount, setAmount] = useState('');
-  const [selectedType, setSelectedType] = useState('Le presté');
+  const [selectedType, setSelectedType] = useState('Le pagué');
   const [description, setDescription] = useState('');
 
   const formatAmount = (text) => {
@@ -30,7 +30,7 @@ const AddMovementModal = ({visible, onClose, onSave, debtor}) => {
   // Siempre los mismos dos tipos de movimiento
   const movementTypes = [
     {type: 'Me pagó', icon: 'arrow-down-circle', color: '#34C759', description: 'Reduce la deuda'},
-    {type: 'Le presté', icon: 'arrow-up-circle', color: '#FF9500', description: 'Aumenta la deuda'},
+    {type: 'Le pagué', icon: 'arrow-up-circle', color: '#FF9500', description: 'Aumenta la deuda'},
   ];
 
   const handleSave = () => {
@@ -52,13 +52,13 @@ const AddMovementModal = ({visible, onClose, onSave, debtor}) => {
 
     // Limpiar formulario
     setAmount('');
-    setSelectedType('Le presté');
+    setSelectedType('Le pagué');
     setDescription('');
   };
 
   const handleClose = () => {
     setAmount('');
-    setSelectedType('Le presté');
+    setSelectedType('Le pagué');
     setDescription('');
     onClose();
   };
