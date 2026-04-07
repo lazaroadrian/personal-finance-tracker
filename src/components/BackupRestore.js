@@ -158,7 +158,7 @@ const BackupRestore = ({visible, onClose, onRestoreComplete}) => {
                 style={styles.optionCard}
                 onPress={handleBackupLocal}>
                 <View style={[styles.iconCircle, {backgroundColor: '#E8F5E9'}]}>
-                  <Ionicons name="cloud-upload-outline" size={32} color="#34C759" />
+                  <Ionicons name="cloud-upload-outline" size={26} color="#34C759" />
                 </View>
                 <View style={styles.optionInfo}>
                   <Text style={styles.optionTitle}>Crear Backup</Text>
@@ -174,7 +174,7 @@ const BackupRestore = ({visible, onClose, onRestoreComplete}) => {
                 style={styles.optionCard}
                 onPress={handleRestore}>
                 <View style={[styles.iconCircle, {backgroundColor: '#FFF3E0'}]}>
-                  <Ionicons name="cloud-download-outline" size={32} color="#FF9500" />
+                  <Ionicons name="cloud-download-outline" size={26} color="#FF9500" />
                 </View>
                 <View style={styles.optionInfo}>
                   <Text style={styles.optionTitle}>Restaurar Backup</Text>
@@ -210,15 +210,15 @@ const styles = StyleSheet.create({
     backgroundColor: '#F2F2F7',
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
-    paddingTop: 20,
+    paddingTop: 16,
     maxHeight: '80%',
   },
   modalHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingBottom: 16,
+    paddingHorizontal: 16,
+    paddingBottom: 12,
     borderBottomWidth: 1,
     borderBottomColor: '#E5E5EA',
     backgroundColor: '#fff',
@@ -226,29 +226,29 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 20,
   },
   modalTitle: {
-    fontSize: 22,
+    fontSize: 18,
     fontWeight: 'bold',
     color: '#1C1C1E',
   },
   loadingContainer: {
-    padding: 60,
+    padding: 40,
     alignItems: 'center',
   },
   loadingText: {
-    marginTop: 16,
-    fontSize: 16,
+    marginTop: 12,
+    fontSize: 14,
     color: '#8E8E93',
   },
   optionsContainer: {
-    padding: 20,
+    padding: 16,
   },
   optionCard: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#FFFFFF',
     borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
+    padding: 14,
+    marginBottom: 10,
     shadowColor: '#000',
     shadowOffset: {width: 0, height: 1},
     shadowOpacity: 0.05,
@@ -256,12 +256,12 @@ const styles = StyleSheet.create({
     elevation: 1,
   },
   iconCircle: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
+    width: 46,
+    height: 46,
+    borderRadius: 23,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 14,
+    marginRight: 12,
   },
   optionInfo: {
     flex: 1,

@@ -94,38 +94,48 @@ const DebtorCard = ({debtor, onDelete, onAddMovement, onEdit, movements}) => {
 
       <View style={styles.cardActions}>
         <TouchableOpacity style={styles.actionButton} onPress={openWhatsApp}>
-          <Ionicons name="logo-whatsapp" size={20} color="#25D366" />
+          <View style={[styles.actionIconCircle, {backgroundColor: '#E8F9EE'}]}>
+            <Ionicons name="logo-whatsapp" size={18} color="#25D366" />
+          </View>
           <Text style={styles.actionText}>WhatsApp</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
           style={styles.actionButton}
           onPress={() => onAddMovement(debtor)}>
-          <Ionicons name="add-circle-outline" size={20} color="#007AFF" />
-          <Text style={styles.actionText}>Movimiento</Text>
+          <View style={[styles.actionIconCircle, {backgroundColor: '#E3F2FD'}]}>
+            <Ionicons name="add-circle-outline" size={18} color="#007AFF" />
+          </View>
+          <Text style={styles.actionText}>Mover</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
           style={styles.actionButton}
           onPress={() => setExpanded(!expanded)}>
-          <Ionicons
-            name={expanded ? 'chevron-up' : 'chevron-down'}
-            size={20}
-            color="#666"
-          />
+          <View style={[styles.actionIconCircle, {backgroundColor: '#F2F2F7'}]}>
+            <Ionicons
+              name={expanded ? 'chevron-up' : 'time-outline'}
+              size={18}
+              color="#666"
+            />
+          </View>
           <Text style={styles.actionText}>Historial</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
           style={styles.actionButton}
           onPress={() => onEdit(debtor)}>
-          <Ionicons name="create-outline" size={20} color="#FF9500" />
+          <View style={[styles.actionIconCircle, {backgroundColor: '#FFF3E0'}]}>
+            <Ionicons name="create-outline" size={18} color="#FF9500" />
+          </View>
           <Text style={[styles.actionText, {color: '#FF9500'}]}>Editar</Text>
         </TouchableOpacity>
 
         <TouchableOpacity style={styles.actionButton} onPress={handleDelete}>
-          <Ionicons name="trash-outline" size={20} color="#FF3B30" />
-          <Text style={[styles.actionText, {color: '#FF3B30'}]}>Eliminar</Text>
+          <View style={[styles.actionIconCircle, {backgroundColor: '#FFEBEE'}]}>
+            <Ionicons name="trash-outline" size={18} color="#FF3B30" />
+          </View>
+          <Text style={[styles.actionText, {color: '#FF3B30'}]}>Borrar</Text>
         </TouchableOpacity>
       </View>
 
@@ -164,20 +174,21 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: '#FFFFFF',
     borderRadius: 12,
-    padding: 16,
-    marginHorizontal: 16,
-    marginVertical: 8,
+    padding: 14,
+    marginHorizontal: 12,
+    marginVertical: 6,
     shadowColor: '#000',
     shadowOffset: {width: 0, height: 2},
-    shadowOpacity: 0.1,
+    shadowOpacity: 0.08,
     shadowRadius: 4,
     elevation: 3,
   },
   cardHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     marginBottom: 12,
+    gap: 8,
   },
   headerLeft: {
     flex: 1,
@@ -186,22 +197,22 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
   },
   name: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: 'bold',
     color: '#1C1C1E',
-    marginBottom: 4,
+    marginBottom: 2,
   },
   phone: {
-    fontSize: 14,
+    fontSize: 13,
     color: '#8E8E93',
   },
   createdDate: {
-    fontSize: 11,
+    fontSize: 10,
     color: '#AEAEB2',
     marginTop: 2,
   },
   balance: {
-    fontSize: 24,
+    fontSize: 20,
     fontWeight: 'bold',
     marginBottom: 2,
   },
@@ -212,24 +223,33 @@ const styles = StyleSheet.create({
     color: '#FF3B30',
   },
   balanceLabel: {
-    fontSize: 12,
+    fontSize: 11,
     color: '#8E8E93',
   },
   cardActions: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
+    justifyContent: 'space-between',
     borderTopWidth: 1,
-    borderTopColor: '#E5E5EA',
-    paddingTop: 12,
+    borderTopColor: '#F0F0F0',
+    paddingTop: 10,
   },
   actionButton: {
     alignItems: 'center',
-    padding: 4,
+    flex: 1,
+    paddingVertical: 4,
+  },
+  actionIconCircle: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   actionText: {
-    fontSize: 11,
+    fontSize: 10,
     color: '#007AFF',
-    marginTop: 4,
+    marginTop: 3,
+    textAlign: 'center',
   },
   historySection: {
     marginTop: 16,

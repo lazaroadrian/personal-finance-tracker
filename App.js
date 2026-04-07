@@ -305,45 +305,50 @@ function App() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="#F8F8F8" />
+      <StatusBar barStyle="light-content" backgroundColor="#1A237E" />
 
       {/* Header */}
       <View style={styles.header}>
-        <View>
-          <Text style={styles.headerTitle}>Gestor de Cuentas</Text>
-          <Text style={styles.headerSubtitle}>
-            Balance neto: ${' '}
-            <Text
-              style={[
-                styles.netBalance,
-                parseFloat(stats.net_balance) >= 0
-                  ? styles.positiveValue
-                  : styles.negativeValue,
-              ]}>
-              {Math.abs(stats.net_balance || 0).toFixed(2)}
-            </Text>
-          </Text>
+        <View style={styles.headerTop}>
+          <View style={styles.headerTitleContainer}>
+            <Ionicons name="wallet-outline" size={22} color="#FFFFFF" />
+            <Text style={styles.headerTitle}>Gestor de Cuentas</Text>
+          </View>
+          <View style={styles.headerButtons}>
+            <TouchableOpacity
+              style={styles.headerIconButton}
+              onPress={() => setShowBackup(true)}>
+              <Ionicons name="save-outline" size={20} color="rgba(255,255,255,0.9)" />
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.headerIconButton, showStats && styles.headerIconButtonActive]}
+              onPress={() => setShowStats(!showStats)}>
+              <Ionicons
+                name={showStats ? 'list' : 'stats-chart'}
+                size={20}
+                color="#FFFFFF"
+              />
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.addButton}
+              onPress={() => setShowAddDebtorModal(true)}>
+              <Ionicons name="add" size={24} color="#1A237E" />
+            </TouchableOpacity>
+          </View>
         </View>
-        <View style={styles.headerButtons}>
-          <TouchableOpacity
-            style={styles.statsButton}
-            onPress={() => setShowBackup(true)}>
-            <Ionicons name="save-outline" size={22} color="#007AFF" />
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.statsButton, showStats && styles.statsButtonActive]}
-            onPress={() => setShowStats(!showStats)}>
-            <Ionicons
-              name={showStats ? 'list' : 'stats-chart'}
-              size={22}
-              color={showStats ? '#FFFFFF' : '#007AFF'}
-            />
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.addButton}
-            onPress={() => setShowAddDebtorModal(true)}>
-            <Ionicons name="add" size={28} color="#FFFFFF" />
-          </TouchableOpacity>
+        <View style={styles.headerBalance}>
+          <Text style={styles.headerSubtitle}>Balance neto</Text>
+          <Text style={styles.headerBalanceAmount}>
+            ${Math.abs(stats.net_balance || 0).toFixed(2)}
+          </Text>
+          <View style={[
+            styles.headerBalanceBadge,
+            parseFloat(stats.net_balance) >= 0 ? styles.badgePositive : styles.badgeNegative
+          ]}>
+            <Text style={styles.headerBalanceBadgeText}>
+              {parseFloat(stats.net_balance) >= 0 ? 'A favor' : 'En contra'}
+            </Text>
+          </View>
         </View>
       </View>
 
@@ -433,68 +438,96 @@ const styles = StyleSheet.create({
     color: '#8E8E93',
   },
   header: {
+    backgroundColor: '#1A237E',
+    paddingHorizontal: 16,
+    paddingTop: 12,
+    paddingBottom: 16,
+  },
+  headerTop: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    backgroundColor: '#FFFFFF',
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E5EA',
+    marginBottom: 12,
+  },
+  headerTitleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    flex: 1,
   },
   headerTitle: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: '#1C1C1E',
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#FFFFFF',
   },
   headerSubtitle: {
-    fontSize: 14,
-    color: '#8E8E93',
+    fontSize: 11,
+    color: 'rgba(255,255,255,0.6)',
+    textTransform: 'uppercase',
+    fontWeight: '600',
+    letterSpacing: 0.5,
+  },
+  headerBalance: {
+    alignItems: 'center',
+  },
+  headerBalanceAmount: {
+    fontSize: 28,
+    fontWeight: '800',
+    color: '#FFFFFF',
     marginTop: 2,
   },
-  netBalance: {
-    fontWeight: 'bold',
+  headerBalanceBadge: {
+    paddingHorizontal: 10,
+    paddingVertical: 3,
+    borderRadius: 10,
+    marginTop: 4,
+  },
+  badgePositive: {
+    backgroundColor: 'rgba(52, 199, 89, 0.25)',
+  },
+  badgeNegative: {
+    backgroundColor: 'rgba(255, 59, 48, 0.25)',
+  },
+  headerBalanceBadgeText: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#FFFFFF',
   },
   headerButtons: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
+    gap: 8,
   },
-  statsButton: {
-    backgroundColor: '#E8F0FE',
-    width: 42,
-    height: 42,
-    borderRadius: 21,
+  headerIconButton: {
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  statsButtonActive: {
-    backgroundColor: '#007AFF',
+  headerIconButtonActive: {
+    backgroundColor: 'rgba(255,255,255,0.3)',
   },
   addButton: {
-    backgroundColor: '#007AFF',
-    width: 50,
-    height: 50,
-    borderRadius: 25,
+    backgroundColor: '#FFFFFF',
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#007AFF',
-    shadowOffset: {width: 0, height: 4},
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 5,
   },
   statsContainer: {
     flexDirection: 'row',
     paddingHorizontal: 16,
-    paddingVertical: 16,
-    gap: 12,
+    paddingVertical: 12,
+    gap: 10,
   },
   statCard: {
     flex: 1,
     backgroundColor: '#FFFFFF',
     borderRadius: 12,
-    padding: 12,
+    padding: 10,
     alignItems: 'center',
     shadowColor: '#000',
     shadowOffset: {width: 0, height: 1},
@@ -509,14 +542,14 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFEBEE',
   },
   statLabel: {
-    fontSize: 11,
+    fontSize: 10,
     color: '#8E8E93',
     fontWeight: '600',
     textTransform: 'uppercase',
     marginBottom: 4,
   },
   statValue: {
-    fontSize: 18,
+    fontSize: 15,
     fontWeight: 'bold',
     color: '#1C1C1E',
   },

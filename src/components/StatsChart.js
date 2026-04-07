@@ -2,7 +2,7 @@ import React from 'react';
 import {View, Text, StyleSheet, Dimensions, ScrollView} from 'react-native';
 import {BarChart, PieChart} from 'react-native-chart-kit';
 
-const screenWidth = Dimensions.get('window').width - 32;
+const screenWidth = Dimensions.get('window').width - 64;
 
 const StatsChart = ({debtors, movements}) => {
   if (!debtors || debtors.length === 0) {
@@ -176,11 +176,11 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   section: {
-    marginHorizontal: 16,
-    marginBottom: 20,
+    marginHorizontal: 12,
+    marginBottom: 16,
     backgroundColor: '#fff',
     borderRadius: 12,
-    padding: 16,
+    padding: 14,
     shadowColor: '#000',
     shadowOffset: {width: 0, height: 1},
     shadowOpacity: 0.05,
@@ -188,10 +188,10 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   sectionTitle: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: '700',
     color: '#1C1C1E',
-    marginBottom: 12,
+    marginBottom: 10,
   },
   chartContainer: {
     alignItems: 'center',
@@ -211,14 +211,14 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   monthlyLabel: {
-    fontSize: 11,
+    fontSize: 10,
     color: '#8E8E93',
     fontWeight: '600',
     textTransform: 'uppercase',
     marginBottom: 4,
   },
   monthlyValue: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: 'bold',
     color: '#1C1C1E',
   },
