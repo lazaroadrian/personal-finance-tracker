@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, useRef} from 'react';
 import {
   Modal,
   View,
@@ -18,6 +18,17 @@ const EditDebtorModal = ({visible, onClose, onSave, debtor}) => {
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [whatsappMessage, setWhatsappMessage] = useState('');
+  const [msgSelection, setMsgSelection] = useState({start: 0, end: 0});
+  const msgInputRef = useRef(null);
+
+  const insertVariable = (variable) => {
+    const before = whatsappMessage.substring(0, msgSelection.start);
+    const after = whatsappMessage.substring(msgSelection.end);
+    const newText = before + variable + after;
+    setWhatsappMessage(newText);
+    const newPos = msgSelection.start + variable.length;
+    setMsgSelection({start: newPos, end: newPos});
+  };
 
   useEffect(() => {
     if (debtor) {
@@ -153,17 +164,30 @@ const EditDebtorModal = ({visible, onClose, onSave, debtor}) => {
             <View style={styles.inputGroup}>
               <Text style={styles.label}>Mensaje de WhatsApp (opcional)</Text>
               <TextInput
+                ref={msgInputRef}
                 style={[styles.input, styles.textArea]}
                 placeholder="Hola {name}, te contacto sobre..."
                 value={whatsappMessage}
                 onChangeText={setWhatsappMessage}
+                onSelectionChange={(e) => setMsgSelection(e.nativeEvent.selection)}
                 multiline
                 numberOfLines={4}
                 placeholderTextColor="#8E8E93"
               />
-              <Text style={styles.hint}>
-                Usa {'{name}'} y {'{balance}'} para reemplazar automáticamente
-              </Text>
+              <View style={styles.variableButtons}>
+                <TouchableOpacity
+                  style={styles.variableButton}
+                  onPress={() => insertVariable('{name}')}>
+                  <Ionicons name="person-outline" size={14} color="#007AFF" />
+                  <Text style={styles.variableButtonText}>Nombre</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.variableButton}
+                  onPress={() => insertVariable('{balance}')}>
+                  <Ionicons name="cash-outline" size={14} color="#007AFF" />
+                  <Text style={styles.variableButtonText}>Saldo</Text>
+                </TouchableOpacity>
+              </View>
             </View>
           </ScrollView>
 
@@ -253,6 +277,25 @@ const styles = StyleSheet.create({
   textArea: {
     height: 80,
     textAlignVertical: 'top',
+  },
+  variableButtons: {
+    flexDirection: 'row',
+    gap: 8,
+    marginTop: 8,
+  },
+  variableButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: '#E8F0FE',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+  },
+  variableButtonText: {
+    fontSize: 12,
+    color: '#007AFF',
+    fontWeight: '600',
   },
   hint: {
     fontSize: 11,

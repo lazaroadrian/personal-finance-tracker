@@ -28,51 +28,32 @@ const BackupRestore = ({visible, onClose, onRestoreComplete}) => {
       const jsonString = JSON.stringify(data, null, 2);
       const fileName = `gestor_cuentas_backup_${Date.now()}.json`;
 
-      // Intentar guardar en Descargas usando SAF
-      try {
-        const permissions = await StorageAccessFramework.requestDirectoryPermissionsAsync();
-        if (permissions.granted) {
-          const fileUri = await StorageAccessFramework.createFileAsync(
-            permissions.directoryUri,
-            fileName,
-            'application/json'
-          );
-          await FileSystem.writeAsStringAsync(fileUri, jsonString);
-
-          setLoading(false);
-          setStatusMessage('');
-          Alert.alert(
-            'Backup exitoso',
-            `Se exportaron ${data.debtors.length} deudores y ${data.movements.length} movimientos.\n\nArchivo guardado en la carpeta seleccionada.`
-          );
-          return;
-        }
-      } catch (safError) {
-        console.log('SAF error, falling back:', safError);
+      // Guardar usando SAF (selector de carpeta)
+      const permissions = await StorageAccessFramework.requestDirectoryPermissionsAsync();
+      if (!permissions.granted) {
+        setLoading(false);
+        setStatusMessage('');
+        return;
       }
 
-      // Fallback: guardar internamente y ofrecer compartir
-      const filePath = FileSystem.documentDirectory + fileName;
-      await FileSystem.writeAsStringAsync(filePath, jsonString);
+      const fileUri = await StorageAccessFramework.createFileAsync(
+        permissions.directoryUri,
+        fileName,
+        'application/json'
+      );
+      await FileSystem.writeAsStringAsync(fileUri, jsonString);
 
       setLoading(false);
       setStatusMessage('');
-
       Alert.alert(
         'Backup exitoso',
-        `Se exportaron ${data.debtors.length} deudores y ${data.movements.length} movimientos.\n\n¿Deseas compartir el archivo?`,
-        [
-          {text: 'No, solo guardar', style: 'cancel'},
-          {
-            text: 'Compartir',
-            onPress: () => shareBackup(filePath),
-          },
-        ]
+        `Se exportaron ${data.debtors.length} deudores y ${data.movements.length} movimientos.\n\nArchivo guardado en la carpeta seleccionada.`
       );
     } catch (error) {
       setLoading(false);
+      setStatusMessage('');
       console.error('Error creating backup:', error);
-      Alert.alert('Error', 'No se pudo crear el backup');
+      Alert.alert('Error', 'No se pudo crear el backup: ' + error.message);
     }
   };
 
