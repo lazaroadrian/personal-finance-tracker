@@ -9,6 +9,7 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Alert,
+  RefreshControl,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import DatabaseService from './src/services/DatabaseService';
@@ -18,6 +19,9 @@ import AddMovementModal from './src/components/AddMovementModal';
 import EditDebtorModal from './src/components/EditDebtorModal';
 import FilterBar from './src/components/FilterBar';
 import SearchBar from './src/components/SearchBar';
+import StatsChart from './src/components/StatsChart';
+import BackupRestore from './src/components/BackupRestore';
+import * as Haptics from 'expo-haptics';
 
 function App() {
   const [debtors, setDebtors] = useState([]);
@@ -41,6 +45,9 @@ function App() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedFilter, setSelectedFilter] = useState('all');
   const [selectedSort, setSelectedSort] = useState('recent');
+  const [refreshing, setRefreshing] = useState(false);
+  const [showStats, setShowStats] = useState(false);
+  const [showBackup, setShowBackup] = useState(false);
 
   useEffect(() => {
     initializeDatabase();
@@ -68,19 +75,26 @@ function App() {
       const allDebtors = await DatabaseService.getAllDebtors();
       setDebtors(allDebtors);
 
-      // Cargar movimientos para cada deudor
-      const allMovements = {};
-      for (const debtor of allDebtors) {
-        const debtorMovements = await DatabaseService.getMovementsByDebtor(
-          debtor.id
-        );
-        allMovements[debtor.id] = debtorMovements;
-      }
+      // Cargar movimientos en paralelo
+      const movementEntries = await Promise.all(
+        allDebtors.map(async (debtor) => {
+          const debtorMovements = await DatabaseService.getMovementsByDebtor(debtor.id);
+          return [debtor.id, debtorMovements];
+        })
+      );
+      const allMovements = Object.fromEntries(movementEntries);
       setMovements(allMovements);
     } catch (error) {
       console.error('Error loading debtors:', error);
       Alert.alert('Error', 'No se pudieron cargar los deudores');
     }
+  };
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    await loadDebtors();
+    await loadStats();
+    setRefreshing(false);
   };
 
   const loadStats = async () => {
@@ -103,6 +117,7 @@ function App() {
       await loadDebtors();
       await loadStats();
       setShowAddDebtorModal(false);
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       Alert.alert('Éxito', 'Deudor agregado correctamente');
     } catch (error) {
       console.error('Error adding debtor:', error);
@@ -115,6 +130,7 @@ function App() {
       await DatabaseService.deleteDebtor(debtorId);
       await loadDebtors();
       await loadStats();
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
       Alert.alert('Éxito', 'Deudor eliminado correctamente');
     } catch (error) {
       console.error('Error deleting debtor:', error);
@@ -143,6 +159,7 @@ function App() {
       await loadDebtors();
       setShowEditDebtorModal(false);
       setSelectedDebtor(null);
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       Alert.alert('Éxito', 'Deudor actualizado correctamente');
     } catch (error) {
       console.error('Error updating debtor:', error);
@@ -162,6 +179,7 @@ function App() {
       await loadStats();
       setShowAddMovementModal(false);
       setSelectedDebtor(null);
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       Alert.alert('Éxito', 'Movimiento registrado correctamente');
     } catch (error) {
       console.error('Error adding movement:', error);
@@ -306,14 +324,32 @@ function App() {
             </Text>
           </Text>
         </View>
-        <TouchableOpacity
-          style={styles.addButton}
-          onPress={() => setShowAddDebtorModal(true)}>
-          <Ionicons name="add" size={28} color="#FFFFFF" />
-        </TouchableOpacity>
+        <View style={styles.headerButtons}>
+          <TouchableOpacity
+            style={styles.statsButton}
+            onPress={() => setShowBackup(true)}>
+            <Ionicons name="save-outline" size={22} color="#007AFF" />
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.statsButton, showStats && styles.statsButtonActive]}
+            onPress={() => setShowStats(!showStats)}>
+            <Ionicons
+              name={showStats ? 'list' : 'stats-chart'}
+              size={22}
+              color={showStats ? '#FFFFFF' : '#007AFF'}
+            />
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.addButton}
+            onPress={() => setShowAddDebtorModal(true)}>
+            <Ionicons name="add" size={28} color="#FFFFFF" />
+          </TouchableOpacity>
+        </View>
       </View>
 
-      {/* Lista de deudores */}
+      {showStats ? (
+        <StatsChart debtors={debtors} movements={movements} />
+      ) : (
       <FlatList
         data={filteredDebtors}
         keyExtractor={item => item.id.toString()}
@@ -328,10 +364,19 @@ function App() {
         )}
         ListHeaderComponent={renderHeader}
         ListEmptyComponent={renderEmptyList}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={handleRefresh}
+            colors={['#007AFF']}
+            tintColor="#007AFF"
+          />
+        }
         contentContainerStyle={
           filteredDebtors.length === 0 && styles.emptyListContent
         }
       />
+      )}
 
       {/* Modales */}
       <AddDebtorModal
@@ -358,6 +403,15 @@ function App() {
         }}
         onSave={handleSaveEdit}
         debtor={selectedDebtor}
+      />
+
+      <BackupRestore
+        visible={showBackup}
+        onClose={() => setShowBackup(false)}
+        onRestoreComplete={async () => {
+          await loadDebtors();
+          await loadStats();
+        }}
       />
     </SafeAreaView>
   );
@@ -400,6 +454,22 @@ const styles = StyleSheet.create({
   },
   netBalance: {
     fontWeight: 'bold',
+  },
+  headerButtons: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  statsButton: {
+    backgroundColor: '#E8F0FE',
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  statsButtonActive: {
+    backgroundColor: '#007AFF',
   },
   addButton: {
     backgroundColor: '#007AFF',

@@ -225,6 +225,59 @@ class DatabaseService {
       throw error;
     }
   }
+
+  // ============ BACKUP / RESTORE ============
+
+  async exportData() {
+    try {
+      const debtors = await this.db.getAllAsync('SELECT * FROM debtors');
+      const movements = await this.db.getAllAsync('SELECT * FROM movements ORDER BY created_at ASC');
+      
+      return {
+        version: 1,
+        exportDate: this.getCurrentDateTime(),
+        app: 'Gestor de Cuentas',
+        debtors,
+        movements,
+      };
+    } catch (error) {
+      console.log('Error exporting data: ', error);
+      throw error;
+    }
+  }
+
+  async importData(data) {
+    try {
+      if (!data || !data.debtors || !data.movements) {
+        throw new Error('Formato de backup inválido');
+      }
+
+      // Eliminar datos actuales
+      await this.db.execAsync('DELETE FROM movements');
+      await this.db.execAsync('DELETE FROM debtors');
+
+      // Importar deudores
+      for (const debtor of data.debtors) {
+        await this.db.runAsync(
+          'INSERT INTO debtors (id, name, phone, balance, whatsapp_message, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)',
+          [debtor.id, debtor.name, debtor.phone, debtor.balance, debtor.whatsapp_message, debtor.created_at, debtor.updated_at]
+        );
+      }
+
+      // Importar movimientos
+      for (const movement of data.movements) {
+        await this.db.runAsync(
+          'INSERT INTO movements (id, debtor_id, amount, type, description, created_at) VALUES (?, ?, ?, ?, ?, ?)',
+          [movement.id, movement.debtor_id, movement.amount, movement.type, movement.description, movement.created_at]
+        );
+      }
+
+      return true;
+    } catch (error) {
+      console.log('Error importing data: ', error);
+      throw error;
+    }
+  }
 }
 
 export default new DatabaseService();

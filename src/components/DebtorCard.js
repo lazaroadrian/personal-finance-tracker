@@ -35,9 +35,14 @@ const DebtorCard = ({debtor, onDelete, onAddMovement, onEdit, movements}) => {
   };
 
   const handleDelete = () => {
+    const movementCount = movements ? movements.length : 0;
+    const movementWarning = movementCount > 0
+      ? `\n\nSe eliminarán también ${movementCount} movimiento${movementCount > 1 ? 's' : ''} asociado${movementCount > 1 ? 's' : ''}.`
+      : '';
+
     Alert.alert(
       'Confirmar eliminación',
-      `¿Estás seguro de que deseas eliminar a ${debtor.name}? Esta acción no se puede deshacer.`,
+      `¿Estás seguro de que deseas eliminar a ${debtor.name}?${movementWarning}\n\nEsta acción no se puede deshacer.`,
       [
         {text: 'Cancelar', style: 'cancel'},
         {
@@ -67,6 +72,11 @@ const DebtorCard = ({debtor, onDelete, onAddMovement, onEdit, movements}) => {
         <View style={styles.headerLeft}>
           <Text style={styles.name}>{debtor.name}</Text>
           <Text style={styles.phone}>{debtor.phone}</Text>
+          {debtor.created_at && (
+            <Text style={styles.createdDate}>
+              Desde: {formatDate(debtor.created_at)}
+            </Text>
+          )}
         </View>
         <View style={styles.headerRight}>
           <Text
@@ -184,6 +194,11 @@ const styles = StyleSheet.create({
   phone: {
     fontSize: 14,
     color: '#8E8E93',
+  },
+  createdDate: {
+    fontSize: 11,
+    color: '#AEAEB2',
+    marginTop: 2,
   },
   balance: {
     fontSize: 24,

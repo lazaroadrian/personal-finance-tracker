@@ -20,6 +20,21 @@ const AddDebtorModal = ({visible, onClose, onSave}) => {
     'Hola {name}, te contacto sobre el saldo pendiente de ${balance}.'
   );
 
+  const validatePhone = (phone) => {
+    const digits = phone.replace(/[^0-9]/g, '');
+    return digits.length >= 7;
+  };
+
+  const formatAmount = (text) => {
+    // Permitir solo números, punto decimal y signo negativo
+    let cleaned = text.replace(/[^0-9.-]/g, '');
+    // Limitar a 2 decimales
+    const parts = cleaned.split('.');
+    if (parts.length > 2) cleaned = parts[0] + '.' + parts[1];
+    if (parts[1] && parts[1].length > 2) cleaned = parts[0] + '.' + parts[1].slice(0, 2);
+    return cleaned;
+  };
+
   const handleSave = () => {
     if (!name.trim()) {
       alert('Por favor ingresa un nombre');
@@ -27,6 +42,10 @@ const AddDebtorModal = ({visible, onClose, onSave}) => {
     }
     if (!phone.trim()) {
       alert('Por favor ingresa un número de teléfono');
+      return;
+    }
+    if (!validatePhone(phone)) {
+      alert('Número de teléfono inválido. Debe tener al menos 7 dígitos.');
       return;
     }
 
@@ -104,7 +123,7 @@ const AddDebtorModal = ({visible, onClose, onSave}) => {
                 style={styles.input}
                 placeholder="0.00"
                 value={balance}
-                onChangeText={setBalance}
+                onChangeText={(text) => setBalance(formatAmount(text))}
                 keyboardType="numeric"
                 placeholderTextColor="#8E8E93"
               />

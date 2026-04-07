@@ -17,6 +17,14 @@ const AddMovementModal = ({visible, onClose, onSave, debtor}) => {
   const [selectedType, setSelectedType] = useState(null);
   const [description, setDescription] = useState('');
 
+  const formatAmount = (text) => {
+    let cleaned = text.replace(/[^0-9.]/g, '');
+    const parts = cleaned.split('.');
+    if (parts.length > 2) cleaned = parts[0] + '.' + parts[1];
+    if (parts[1] && parts[1].length > 2) cleaned = parts[0] + '.' + parts[1].slice(0, 2);
+    return cleaned;
+  };
+
   const isPositiveBalance = debtor ? parseFloat(debtor.balance) >= 0 : true;
 
   // Tipos de movimiento según si el saldo es positivo (me deben) o negativo (yo debo)
@@ -123,7 +131,7 @@ const AddMovementModal = ({visible, onClose, onSave, debtor}) => {
                   style={styles.amountInput}
                   placeholder="0.00"
                   value={amount}
-                  onChangeText={setAmount}
+                  onChangeText={(text) => setAmount(formatAmount(text))}
                   keyboardType="decimal-pad"
                   placeholderTextColor="#8E8E93"
                 />
