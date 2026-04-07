@@ -250,7 +250,7 @@ function App() {
         <View style={[styles.statCard, styles.negativeCard]}>
           <Text style={styles.statLabel}>Les debo</Text>
           <Text style={[styles.statValue, styles.negativeValue]}>
-            ${Math.abs(stats.total_i_owe || 0).toFixed(2)}
+            -${Math.abs(stats.total_i_owe || 0).toFixed(2)}
           </Text>
         </View>
       </View>
@@ -339,8 +339,11 @@ function App() {
         </View>
         <View style={styles.headerBalance}>
           <Text style={styles.headerSubtitle}>Balance neto</Text>
-          <Text style={styles.headerBalanceAmount}>
-            ${Math.abs(stats.net_balance || 0).toFixed(2)}
+          <Text style={[
+            styles.headerBalanceAmount,
+            {color: parseFloat(stats.net_balance) >= 0 ? '#A5D6A7' : '#EF9A9A'}
+          ]}>
+            {parseFloat(stats.net_balance) >= 0 ? '' : '-'}${Math.abs(stats.net_balance || 0).toFixed(2)}
           </Text>
           <View style={[
             styles.headerBalanceBadge,
@@ -354,7 +357,7 @@ function App() {
       </View>
 
       {showStats ? (
-        <StatsChart debtors={debtors} movements={movements} />
+        <StatsChart debtors={debtors} movements={movements} onGoBack={() => setShowStats(false)} />
       ) : (
       <FlatList
         data={filteredDebtors}

@@ -1,10 +1,11 @@
 import React from 'react';
-import {View, Text, StyleSheet, Dimensions, ScrollView} from 'react-native';
+import {View, Text, StyleSheet, Dimensions, ScrollView, TouchableOpacity} from 'react-native';
 import {BarChart, PieChart} from 'react-native-chart-kit';
+import {Ionicons} from '@expo/vector-icons';
 
 const screenWidth = Dimensions.get('window').width - 64;
 
-const StatsChart = ({debtors, movements}) => {
+const StatsChart = ({debtors, movements, onGoBack}) => {
   if (!debtors || debtors.length === 0) {
     return (
       <View style={styles.emptyContainer}>
@@ -41,20 +42,20 @@ const StatsChart = ({debtors, movements}) => {
   const pieData = [];
   if (totalOwedToMe > 0) {
     pieData.push({
-      name: 'Me deben',
+      name: `Me deben: $${totalOwedToMe.toFixed(2)}`,
       amount: totalOwedToMe,
       color: '#34C759',
       legendFontColor: '#333',
-      legendFontSize: 13,
+      legendFontSize: 11,
     });
   }
   if (totalIOwe > 0) {
     pieData.push({
-      name: 'Les debo',
+      name: `Les debo: -$${totalIOwe.toFixed(2)}`,
       amount: totalIOwe,
       color: '#FF3B30',
       legendFontColor: '#333',
-      legendFontSize: 13,
+      legendFontSize: 11,
     });
   }
 
@@ -98,6 +99,14 @@ const StatsChart = ({debtors, movements}) => {
 
   return (
     <ScrollView style={styles.container}>
+      {/* Botón de regresar */}
+      {onGoBack && (
+        <TouchableOpacity style={styles.backButton} onPress={onGoBack}>
+          <Ionicons name="arrow-back" size={20} color="#007AFF" />
+          <Text style={styles.backButtonText}>Volver a la lista</Text>
+        </TouchableOpacity>
+      )}
+
       {/* Resumen del mes */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Resumen del mes</Text>
@@ -133,9 +142,17 @@ const StatsChart = ({debtors, movements}) => {
               chartConfig={chartConfig}
               accessor="amount"
               backgroundColor="transparent"
-              paddingLeft="15"
-              absolute
+              paddingLeft="0"
+              hasLegend={false}
             />
+          </View>
+          <View style={styles.legendContainer}>
+            {pieData.map((item, index) => (
+              <View key={index} style={styles.legendItem}>
+                <View style={[styles.legendDot, {backgroundColor: item.color}]} />
+                <Text style={styles.legendText} numberOfLines={1}>{item.name}</Text>
+              </View>
+            ))}
           </View>
         </View>
       )}
@@ -164,6 +181,37 @@ const StatsChart = ({debtors, movements}) => {
 
 const styles = StyleSheet.create({
   container: {
+    flex: 1,
+  },
+  backButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+  },
+  backButtonText: {
+    fontSize: 15,
+    color: '#007AFF',
+    fontWeight: '600',
+  },
+  legendContainer: {
+    marginTop: 8,
+    gap: 4,
+  },
+  legendItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  legendDot: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+  },
+  legendText: {
+    fontSize: 13,
+    color: '#333',
     flex: 1,
   },
   emptyContainer: {

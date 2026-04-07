@@ -84,7 +84,7 @@ const DebtorCard = ({debtor, onDelete, onAddMovement, onEdit, movements}) => {
               styles.balance,
               isPositive ? styles.positiveBalance : styles.negativeBalance,
             ]}>
-            ${Math.abs(balance).toFixed(2)}
+            {isPositive ? '' : '-'}${Math.abs(balance).toFixed(2)}
           </Text>
           <Text style={styles.balanceLabel}>
             {isPositive ? 'Me debe' : 'Le debo'}
