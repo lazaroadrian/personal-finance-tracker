@@ -112,10 +112,6 @@ const StatsChart = ({debtors, movements, onGoBack}) => {
         <Text style={styles.sectionTitle}>Resumen del mes</Text>
         <View style={styles.monthlyStats}>
           <View style={styles.monthlyStat}>
-            <Text style={styles.monthlyLabel}>Movimientos</Text>
-            <Text style={styles.monthlyValue}>{monthlyMovements}</Text>
-          </View>
-          <View style={styles.monthlyStat}>
             <Text style={styles.monthlyLabel}>Cobros/Pagos</Text>
             <Text style={[styles.monthlyValue, {color: '#34C759'}]}>
               ${monthlyIncome.toFixed(2)}

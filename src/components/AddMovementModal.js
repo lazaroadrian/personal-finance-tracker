@@ -99,7 +99,7 @@ const AddMovementModal = ({visible, onClose, onSave, debtor}) => {
                     onPress={() => setSelectedType(item.type)}>
                     <Ionicons
                       name={item.icon}
-                      size={32}
+                      size={22}
                       color={selectedType === item.type ? item.color : '#C7C7CC'}
                     />
                     <Text
@@ -108,12 +108,6 @@ const AddMovementModal = ({visible, onClose, onSave, debtor}) => {
                         selectedType === item.type && {color: item.color},
                       ]}>
                       {item.type}
-                    </Text>
-                    <Text style={[
-                      styles.typeButtonDescription,
-                      selectedType !== item.type && {color: '#C7C7CC'},
-                    ]}>
-                      {item.description}
                     </Text>
                   </TouchableOpacity>
                 ))}
@@ -264,8 +258,12 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#F2F2F7',
     borderRadius: 10,
-    padding: 12,
+    paddingVertical: 10,
+    paddingHorizontal: 8,
+    flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
     borderWidth: 2,
     borderColor: '#E5E5EA',
   },
@@ -273,17 +271,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
   },
   typeButtonText: {
-    fontSize: 13,
+    fontSize: 14,
     fontWeight: '600',
     color: '#1C1C1E',
-    marginTop: 6,
-    textAlign: 'center',
-  },
-  typeButtonDescription: {
-    fontSize: 10,
-    color: '#8E8E93',
-    marginTop: 3,
-    textAlign: 'center',
   },
   amountInputContainer: {
     flexDirection: 'row',

@@ -25,6 +25,7 @@
         "backgroundColor": "#ffffff"
       },
       "package": "com.debtmanager",
+      "softwareKeyboardLayoutMode": "pan",
       "permissions": [
         "android.permission.INTERNET",
         "android.permission.WRITE_EXTERNAL_STORAGE",

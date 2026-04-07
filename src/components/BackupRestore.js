@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import {Ionicons} from '@expo/vector-icons';
 import * as FileSystem from 'expo-file-system/legacy';
+import {StorageAccessFramework} from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
 import * as DocumentPicker from 'expo-document-picker';
 import DatabaseService from '../services/DatabaseService';
@@ -26,12 +27,36 @@ const BackupRestore = ({visible, onClose, onRestoreComplete}) => {
       const data = await DatabaseService.exportData();
       const jsonString = JSON.stringify(data, null, 2);
       const fileName = `gestor_cuentas_backup_${Date.now()}.json`;
-      const filePath = FileSystem.documentDirectory + fileName;
 
+      // Intentar guardar en Descargas usando SAF
+      try {
+        const permissions = await StorageAccessFramework.requestDirectoryPermissionsAsync();
+        if (permissions.granted) {
+          const fileUri = await StorageAccessFramework.createFileAsync(
+            permissions.directoryUri,
+            fileName,
+            'application/json'
+          );
+          await FileSystem.writeAsStringAsync(fileUri, jsonString);
+
+          setLoading(false);
+          setStatusMessage('');
+          Alert.alert(
+            'Backup exitoso',
+            `Se exportaron ${data.debtors.length} deudores y ${data.movements.length} movimientos.\n\nArchivo guardado en la carpeta seleccionada.`
+          );
+          return;
+        }
+      } catch (safError) {
+        console.log('SAF error, falling back:', safError);
+      }
+
+      // Fallback: guardar internamente y ofrecer compartir
+      const filePath = FileSystem.documentDirectory + fileName;
       await FileSystem.writeAsStringAsync(filePath, jsonString);
 
-      setStatusMessage('Backup guardado localmente');
       setLoading(false);
+      setStatusMessage('');
 
       Alert.alert(
         'Backup exitoso',
