@@ -94,14 +94,13 @@ const AddMovementModal = ({visible, onClose, onSave, debtor}) => {
                     key={index}
                     style={[
                       styles.typeButton,
-                      selectedType === item.type && styles.typeButtonSelected,
-                      {borderColor: item.color},
+                      selectedType === item.type && [styles.typeButtonSelected, {borderColor: item.color}],
                     ]}
                     onPress={() => setSelectedType(item.type)}>
                     <Ionicons
                       name={item.icon}
                       size={32}
-                      color={selectedType === item.type ? item.color : '#8E8E93'}
+                      color={selectedType === item.type ? item.color : '#C7C7CC'}
                     />
                     <Text
                       style={[
@@ -110,7 +109,10 @@ const AddMovementModal = ({visible, onClose, onSave, debtor}) => {
                       ]}>
                       {item.type}
                     </Text>
-                    <Text style={styles.typeButtonDescription}>
+                    <Text style={[
+                      styles.typeButtonDescription,
+                      selectedType !== item.type && {color: '#C7C7CC'},
+                    ]}>
                       {item.description}
                     </Text>
                   </TouchableOpacity>
