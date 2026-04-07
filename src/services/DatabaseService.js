@@ -191,10 +191,12 @@ class DatabaseService {
         balanceChange = amount; // Aumenta lo que me deben
       } else if (type === 'Me pagó') {
         balanceChange = -amount; // Disminuye lo que me deben
-      } else if (type === 'Me prestó') {
-        balanceChange = -amount; // Aumenta lo que yo debo (negativo)
+      }
+      // Tipos legacy (datos históricos)
+      else if (type === 'Me prestó') {
+        balanceChange = -amount;
       } else if (type === 'Le pagué') {
-        balanceChange = amount; // Disminuye lo que yo debo (menos negativo)
+        balanceChange = amount;
       }
 
       const result = await db.runAsync(

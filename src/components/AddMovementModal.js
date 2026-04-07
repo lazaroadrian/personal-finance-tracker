@@ -14,7 +14,7 @@ import { Ionicons } from '@expo/vector-icons';
 
 const AddMovementModal = ({visible, onClose, onSave, debtor}) => {
   const [amount, setAmount] = useState('');
-  const [selectedType, setSelectedType] = useState(null);
+  const [selectedType, setSelectedType] = useState('Le presté');
   const [description, setDescription] = useState('');
 
   const formatAmount = (text) => {
@@ -27,16 +27,11 @@ const AddMovementModal = ({visible, onClose, onSave, debtor}) => {
 
   const isPositiveBalance = debtor ? parseFloat(debtor.balance) >= 0 : true;
 
-  // Tipos de movimiento según si el saldo es positivo (me deben) o negativo (yo debo)
-  const movementTypes = isPositiveBalance
-    ? [
-        {type: 'Me pagó', icon: 'arrow-down-circle', color: '#34C759', description: 'Reduce la deuda'},
-        {type: 'Le presté', icon: 'arrow-up-circle', color: '#FF9500', description: 'Aumenta la deuda'},
-      ]
-    : [
-        {type: 'Le pagué', icon: 'arrow-down-circle', color: '#34C759', description: 'Reduce mi deuda'},
-        {type: 'Me prestó', icon: 'arrow-up-circle', color: '#FF9500', description: 'Aumenta mi deuda'},
-      ];
+  // Siempre los mismos dos tipos de movimiento
+  const movementTypes = [
+    {type: 'Me pagó', icon: 'arrow-down-circle', color: '#34C759', description: 'Reduce la deuda'},
+    {type: 'Le presté', icon: 'arrow-up-circle', color: '#FF9500', description: 'Aumenta la deuda'},
+  ];
 
   const handleSave = () => {
     if (!selectedType) {
@@ -57,13 +52,13 @@ const AddMovementModal = ({visible, onClose, onSave, debtor}) => {
 
     // Limpiar formulario
     setAmount('');
-    setSelectedType(null);
+    setSelectedType('Le presté');
     setDescription('');
   };
 
   const handleClose = () => {
     setAmount('');
-    setSelectedType(null);
+    setSelectedType('Le presté');
     setDescription('');
     onClose();
   };
@@ -207,10 +202,10 @@ const AddMovementModal = ({visible, onClose, onSave, debtor}) => {
     const currentBalance = parseFloat(debtor.balance) || 0;
     const amountValue = parseFloat(amount) || 0;
 
-    if (selectedType === 'Me pagó' || selectedType === 'Le pagué') {
-      return currentBalance - (selectedType === 'Me pagó' ? amountValue : -amountValue);
+    if (selectedType === 'Me pagó') {
+      return currentBalance - amountValue;
     } else {
-      return currentBalance + (selectedType === 'Le presté' ? amountValue : -amountValue);
+      return currentBalance + amountValue;
     }
   }
 };
