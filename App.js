@@ -10,6 +10,7 @@ import {
   ActivityIndicator,
   Alert,
   RefreshControl,
+  Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import DatabaseService from './src/services/DatabaseService';
@@ -440,14 +441,14 @@ const styles = StyleSheet.create({
   header: {
     backgroundColor: '#1A237E',
     paddingHorizontal: 16,
-    paddingTop: 12,
-    paddingBottom: 16,
+    paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight || 24) + 8 : 12,
+    paddingBottom: 10,
   },
   headerTop: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: 6,
   },
   headerTitleContainer: {
     flexDirection: 'row',
@@ -471,10 +472,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   headerBalanceAmount: {
-    fontSize: 28,
+    fontSize: 22,
     fontWeight: '800',
     color: '#FFFFFF',
-    marginTop: 2,
+    marginTop: 1,
   },
   headerBalanceBadge: {
     paddingHorizontal: 10,
