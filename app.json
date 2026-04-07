@@ -32,10 +32,6 @@
         "android.permission.READ_CONTACTS"
       ]
     },
-    "web": {
-      "favicon": "./assets/favicon.png",
-      "bundler": "metro"
-    },
     "plugins": [
       "expo-sqlite",
       "expo-asset"
