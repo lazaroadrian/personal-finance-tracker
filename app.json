@@ -39,8 +39,9 @@
     ],
     "extra": {
       "eas": {
-        "projectId": "e3adcc89-2941-455b-bd5c-40ee86596d31"
+        "projectId": "14ac51b0-1bad-48db-a140-f3543d90a751"
       }
-    }
+    },
+    "owner": "lazaroadriangames"
   }
 }

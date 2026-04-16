@@ -10,16 +10,23 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
-const DebtorCard = ({debtor, onDelete, onAddMovement, onEdit, movements}) => {
+const DebtorCard = ({debtor, onDelete, onAddMovement, onEdit, movements, onDeleteMovement}) => {
   const [expanded, setExpanded] = useState(false);
   const balance = parseFloat(debtor.balance) || 0;
   const isPositive = balance >= 0;
 
   const openWhatsApp = () => {
+    if (!debtor.phone || !debtor.phone.trim()) {
+      Alert.alert('Sin teléfono', 'Primero debes agregar un número de teléfono para este deudor.');
+      return;
+    }
     const phoneNumber = debtor.phone.replace(/[^0-9]/g, '');
+    const balanceStr = balance < 0
+      ? `-${Math.abs(balance).toFixed(2)}`
+      : balance.toFixed(2);
     const message = debtor.whatsapp_message
       .replace('{name}', debtor.name)
-      .replace('{balance}', Math.abs(balance).toFixed(2));
+      .replace('{balance}', balanceStr);
     
     const url = `whatsapp://send?phone=${phoneNumber}&text=${encodeURIComponent(message)}`;
     
@@ -148,18 +155,59 @@ const DebtorCard = ({debtor, onDelete, onAddMovement, onEdit, movements}) => {
                 <View style={styles.movementHeader}>
                   <Text style={[
                     styles.movementType,
-                    (movement.type === 'Me prestó' || movement.type === 'Le pagué')
+                    (movement.type === 'Me pagó' || movement.type === 'Me prestó')
                       ? {color: '#FF3B30'}
                       : {color: '#34C759'}
                   ]}>{movement.type}</Text>
+                  <View style={styles.movementMethodBadge}>
+                    <Ionicons
+                      name={movement.method === 'Transferencia' ? 'phone-portrait-outline' : 'cash-outline'}
+                      size={11}
+                      color={movement.method === 'Transferencia' ? '#5856D6' : '#FF9500'}
+                    />
+                    <Text style={[
+                      styles.movementMethodText,
+                      {color: movement.method === 'Transferencia' ? '#5856D6' : '#FF9500'}
+                    ]}>{movement.method === 'Transferencia' ? 'Transf.' : 'Efect.'}</Text>
+                  </View>
                   <Text style={[
                     styles.movementAmount,
-                    (movement.type === 'Me prestó' || movement.type === 'Le pagué')
+                    (movement.type === 'Me pagó' || movement.type === 'Me prestó')
                       ? {color: '#FF3B30'}
                       : {color: '#34C759'}
                   ]}>
-                    {(movement.type === 'Me prestó' || movement.type === 'Le pagué') ? '-' : '+'}${parseFloat(movement.amount).toFixed(2)}
+                    {(movement.type === 'Me pagó' || movement.type === 'Me prestó') ? '-' : '+'}${parseFloat(movement.amount).toFixed(2)}
                   </Text>
+                  {(() => {
+                    const createdAt = new Date(movement.created_at);
+                    const now = new Date();
+                    const diffMinutes = (now - createdAt) / (1000 * 60);
+                    if (diffMinutes <= 20 && onDeleteMovement) {
+                      return (
+                        <TouchableOpacity
+                          onPress={() => {
+                            Alert.alert(
+                              'Eliminar movimiento',
+                              `¿Eliminar este movimiento de $${parseFloat(movement.amount).toFixed(2)}? Se revertirá el balance.`,
+                              [
+                                { text: 'Cancelar', style: 'cancel' },
+                                {
+                                  text: 'Eliminar',
+                                  style: 'destructive',
+                                  onPress: () => onDeleteMovement(movement.id),
+                                },
+                              ]
+                            );
+                          }}
+                          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                          style={styles.deleteMovementBtn}
+                        >
+                          <Ionicons name="trash-outline" size={14} color="#FF3B30" />
+                        </TouchableOpacity>
+                      );
+                    }
+                    return null;
+                  })()}
                 </View>
                 <Text style={styles.movementDate}>
                   {formatDate(movement.created_at)}
@@ -282,6 +330,7 @@ const styles = StyleSheet.create({
   movementHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+    alignItems: 'center',
     marginBottom: 4,
   },
   movementType: {
@@ -289,10 +338,27 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#1C1C1E',
   },
+  movementMethodBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
+    backgroundColor: '#FFFFFF',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 8,
+  },
+  movementMethodText: {
+    fontSize: 10,
+    fontWeight: '600',
+  },
   movementAmount: {
     fontSize: 14,
     fontWeight: 'bold',
     color: '#007AFF',
+  },
+  deleteMovementBtn: {
+    marginLeft: 6,
+    padding: 2,
   },
   movementDate: {
     fontSize: 12,

@@ -15,6 +15,7 @@ import { Ionicons } from '@expo/vector-icons';
 const AddMovementModal = ({visible, onClose, onSave, debtor}) => {
   const [amount, setAmount] = useState('');
   const [selectedType, setSelectedType] = useState('Le pagué');
+  const [selectedMethod, setSelectedMethod] = useState('Efectivo');
   const [description, setDescription] = useState('');
 
   const formatAmount = (text) => {
@@ -47,18 +48,21 @@ const AddMovementModal = ({visible, onClose, onSave, debtor}) => {
       debtorId: debtor.id,
       amount: parseFloat(amount),
       type: selectedType,
+      method: selectedMethod,
       description: description.trim(),
     });
 
     // Limpiar formulario
     setAmount('');
     setSelectedType('Le pagué');
+    setSelectedMethod('Efectivo');
     setDescription('');
   };
 
   const handleClose = () => {
     setAmount('');
     setSelectedType('Le pagué');
+    setSelectedMethod('Efectivo');
     setDescription('');
     onClose();
   };
@@ -126,6 +130,50 @@ const AddMovementModal = ({visible, onClose, onSave, debtor}) => {
                   keyboardType="decimal-pad"
                   placeholderTextColor="#8E8E93"
                 />
+              </View>
+            </View>
+
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Método de pago *</Text>
+              <View style={styles.typeButtonsContainer}>
+                <TouchableOpacity
+                  style={[
+                    styles.typeButton,
+                    selectedMethod === 'Efectivo' && [styles.typeButtonSelected, {borderColor: '#FF9500'}],
+                  ]}
+                  onPress={() => setSelectedMethod('Efectivo')}>
+                  <Ionicons
+                    name="cash-outline"
+                    size={22}
+                    color={selectedMethod === 'Efectivo' ? '#FF9500' : '#C7C7CC'}
+                  />
+                  <Text
+                    style={[
+                      styles.typeButtonText,
+                      selectedMethod === 'Efectivo' && {color: '#FF9500'},
+                    ]}>
+                    Efectivo
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[
+                    styles.typeButton,
+                    selectedMethod === 'Transferencia' && [styles.typeButtonSelected, {borderColor: '#5856D6'}],
+                  ]}
+                  onPress={() => setSelectedMethod('Transferencia')}>
+                  <Ionicons
+                    name="phone-portrait-outline"
+                    size={22}
+                    color={selectedMethod === 'Transferencia' ? '#5856D6' : '#C7C7CC'}
+                  />
+                  <Text
+                    style={[
+                      styles.typeButtonText,
+                      selectedMethod === 'Transferencia' && {color: '#5856D6'},
+                    ]}>
+                    Transferencia
+                  </Text>
+                </TouchableOpacity>
               </View>
             </View>
 

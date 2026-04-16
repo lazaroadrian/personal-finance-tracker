@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import {Ionicons} from '@expo/vector-icons';
 import * as FileSystem from 'expo-file-system/legacy';
-import {StorageAccessFramework} from 'expo-file-system';
+const StorageAccessFramework = FileSystem.StorageAccessFramework;
 import * as Sharing from 'expo-sharing';
 import * as DocumentPicker from 'expo-document-picker';
 import DatabaseService from '../services/DatabaseService';
@@ -47,7 +47,7 @@ const BackupRestore = ({visible, onClose, onRestoreComplete}) => {
       setStatusMessage('');
       Alert.alert(
         'Backup exitoso',
-        `Se exportaron ${data.debtors.length} deudores y ${data.movements.length} movimientos.\n\nArchivo guardado en la carpeta seleccionada.`
+        `Se exportaron ${data.debtors.length} deudores, ${data.movements.length} movimientos, ${(data.jar_groups || []).length} grupos y ${(data.jars || []).length} frascos.\n\nArchivo guardado en la carpeta seleccionada.`
       );
     } catch (error) {
       setLoading(false);
@@ -125,7 +125,7 @@ const BackupRestore = ({visible, onClose, onRestoreComplete}) => {
 
       Alert.alert(
         'Restauración exitosa',
-        `Se restauraron ${data.debtors.length} deudores y ${data.movements.length} movimientos.`
+        `Se restauraron ${data.debtors.length} deudores, ${data.movements.length} movimientos${data.jar_groups ? `, ${data.jar_groups.length} grupos` : ''}${data.jars ? ` y ${data.jars.length} frascos` : ''}.`
       );
 
       if (onRestoreComplete) onRestoreComplete();

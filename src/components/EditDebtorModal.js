@@ -1,4 +1,4 @@
-import React, {useState, useEffect, useRef} from 'react';
+import React, {useState, useEffect} from 'react';
 import {
   Modal,
   View,
@@ -12,23 +12,12 @@ import {
   Alert,
 } from 'react-native';
 import {Ionicons} from '@expo/vector-icons';
-import * as Contacts from 'expo-contacts';
+import TemplateEditor from './TemplateEditor';
 
 const EditDebtorModal = ({visible, onClose, onSave, debtor}) => {
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [whatsappMessage, setWhatsappMessage] = useState('');
-  const [msgSelection, setMsgSelection] = useState({start: 0, end: 0});
-  const msgInputRef = useRef(null);
-
-  const insertVariable = (variable) => {
-    const before = whatsappMessage.substring(0, msgSelection.start);
-    const after = whatsappMessage.substring(msgSelection.end);
-    const newText = before + variable + after;
-    setWhatsappMessage(newText);
-    const newPos = msgSelection.start + variable.length;
-    setMsgSelection({start: newPos, end: newPos});
-  };
 
   useEffect(() => {
     if (debtor) {
@@ -43,10 +32,6 @@ const EditDebtorModal = ({visible, onClose, onSave, debtor}) => {
       Alert.alert('Error', 'Por favor ingresa un nombre');
       return;
     }
-    if (!phone.trim()) {
-      Alert.alert('Error', 'Por favor ingresa un teléfono');
-      return;
-    }
 
     onSave({
       id: debtor.id,
@@ -58,54 +43,6 @@ const EditDebtorModal = ({visible, onClose, onSave, debtor}) => {
 
   const handleClose = () => {
     onClose();
-  };
-
-  const importFromContacts = async () => {
-    try {
-      // Solicitar permisos
-      const {status} = await Contacts.requestPermissionsAsync();
-      if (status !== 'granted') {
-        Alert.alert(
-          'Permisos necesarios',
-          'Necesitamos acceso a tus contactos para importar información'
-        );
-        return;
-      }
-
-      // Obtener contactos
-      const {data} = await Contacts.getContactsAsync({
-        fields: [Contacts.Fields.PhoneNumbers, Contacts.Fields.Name],
-      });
-
-      if (data.length === 0) {
-        Alert.alert('Sin contactos', 'No se encontraron contactos');
-        return;
-      }
-
-      // Crear lista de opciones simple (en una app real usarías un picker)
-      // Por ahora, mostrar el primer contacto como ejemplo
-      // Aquí deberías implementar un selector de contactos
-      Alert.alert(
-        'Importar contacto',
-        `¿Deseas importar el primer contacto?\n${data[0].name}`,
-        [
-          {text: 'Cancelar', style: 'cancel'},
-          {
-            text: 'Importar',
-            onPress: () => {
-              const contact = data[0];
-              setName(contact.name || '');
-              if (contact.phoneNumbers && contact.phoneNumbers.length > 0) {
-                setPhone(contact.phoneNumbers[0].number || '');
-              }
-            },
-          },
-        ]
-      );
-    } catch (error) {
-      console.error('Error importing contacts:', error);
-      Alert.alert('Error', 'No se pudo acceder a los contactos');
-    }
   };
 
   if (!debtor) return null;
@@ -140,54 +77,20 @@ const EditDebtorModal = ({visible, onClose, onSave, debtor}) => {
             </View>
 
             <View style={styles.inputGroup}>
-              <Text style={styles.label}>Teléfono *</Text>
-              <View style={styles.phoneContainer}>
-                <TextInput
-                  style={[styles.input, styles.phoneInput]}
-                  placeholder="+54 11 1234-5678"
-                  value={phone}
-                  onChangeText={setPhone}
-                  keyboardType="phone-pad"
-                  placeholderTextColor="#8E8E93"
-                />
-                <TouchableOpacity
-                  style={styles.importButton}
-                  onPress={importFromContacts}>
-                  <Ionicons name="person-add" size={24} color="#007AFF" />
-                </TouchableOpacity>
-              </View>
-              <Text style={styles.hint}>
-                Toca el icono para importar desde contactos
-              </Text>
+              <Text style={styles.label}>Teléfono</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="+54 11 1234-5678"
+                value={phone}
+                onChangeText={setPhone}
+                keyboardType="phone-pad"
+                placeholderTextColor="#8E8E93"
+              />
             </View>
 
             <View style={styles.inputGroup}>
               <Text style={styles.label}>Mensaje de WhatsApp (opcional)</Text>
-              <TextInput
-                ref={msgInputRef}
-                style={[styles.input, styles.textArea]}
-                placeholder="Hola {name}, te contacto sobre..."
-                value={whatsappMessage}
-                onChangeText={setWhatsappMessage}
-                onSelectionChange={(e) => setMsgSelection(e.nativeEvent.selection)}
-                multiline
-                numberOfLines={4}
-                placeholderTextColor="#8E8E93"
-              />
-              <View style={styles.variableButtons}>
-                <TouchableOpacity
-                  style={styles.variableButton}
-                  onPress={() => insertVariable('{name}')}>
-                  <Ionicons name="person-outline" size={14} color="#007AFF" />
-                  <Text style={styles.variableButtonText}>Nombre</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={styles.variableButton}
-                  onPress={() => insertVariable('{balance}')}>
-                  <Ionicons name="cash-outline" size={14} color="#007AFF" />
-                  <Text style={styles.variableButtonText}>Saldo</Text>
-                </TouchableOpacity>
-              </View>
+              <TemplateEditor value={whatsappMessage} onChange={setWhatsappMessage} />
             </View>
           </ScrollView>
 
@@ -256,51 +159,6 @@ const styles = StyleSheet.create({
     color: '#1C1C1E',
     borderWidth: 1,
     borderColor: '#E5E5EA',
-  },
-  phoneContainer: {
-    flexDirection: 'row',
-    gap: 8,
-  },
-  phoneInput: {
-    flex: 1,
-  },
-  importButton: {
-    backgroundColor: '#F2F2F7',
-    borderRadius: 10,
-    padding: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#E5E5EA',
-    width: 48,
-  },
-  textArea: {
-    height: 80,
-    textAlignVertical: 'top',
-  },
-  variableButtons: {
-    flexDirection: 'row',
-    gap: 8,
-    marginTop: 8,
-  },
-  variableButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    backgroundColor: '#E8F0FE',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 16,
-  },
-  variableButtonText: {
-    fontSize: 12,
-    color: '#007AFF',
-    fontWeight: '600',
-  },
-  hint: {
-    fontSize: 11,
-    color: '#8E8E93',
-    marginTop: 4,
   },
   buttonContainer: {
     flexDirection: 'row',

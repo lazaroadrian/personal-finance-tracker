@@ -1,4 +1,4 @@
-import React, {useState, useRef} from 'react';
+import React, {useState, useEffect} from 'react';
 import {
   Modal,
   View,
@@ -11,25 +11,27 @@ import {
   Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import TemplateEditor from './TemplateEditor';
+import DatabaseService from '../services/DatabaseService';
+
+const DEFAULT_MSG = 'Hola {name}, te contacto sobre el saldo pendiente de ${balance}.';
 
 const AddDebtorModal = ({visible, onClose, onSave}) => {
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [balance, setBalance] = useState('0');
-  const [whatsappMessage, setWhatsappMessage] = useState(
-    'Hola {name}, te contacto sobre el saldo pendiente de ${balance}.'
-  );
-  const [msgSelection, setMsgSelection] = useState({start: 0, end: 0});
-  const msgInputRef = useRef(null);
+  const [whatsappMessage, setWhatsappMessage] = useState(DEFAULT_MSG);
+  const [defaultMsg, setDefaultMsg] = useState(DEFAULT_MSG);
 
-  const insertVariable = (variable) => {
-    const before = whatsappMessage.substring(0, msgSelection.start);
-    const after = whatsappMessage.substring(msgSelection.end);
-    const newText = before + variable + after;
-    setWhatsappMessage(newText);
-    const newPos = msgSelection.start + variable.length;
-    setMsgSelection({start: newPos, end: newPos});
-  };
+  // Load saved default message when modal opens
+  useEffect(() => {
+    if (visible) {
+      DatabaseService.getSetting('default_whatsapp_message', DEFAULT_MSG).then(msg => {
+        setDefaultMsg(msg);
+        setWhatsappMessage(msg);
+      });
+    }
+  }, [visible]);
 
   const validatePhone = (phone) => {
     const digits = phone.replace(/[^0-9]/g, '');
@@ -51,11 +53,7 @@ const AddDebtorModal = ({visible, onClose, onSave}) => {
       alert('Por favor ingresa un nombre');
       return;
     }
-    if (!phone.trim()) {
-      alert('Por favor ingresa un número de teléfono');
-      return;
-    }
-    if (!validatePhone(phone)) {
+    if (phone.trim() && !validatePhone(phone)) {
       alert('Número de teléfono inválido. Debe tener al menos 7 dígitos.');
       return;
     }
@@ -73,14 +71,14 @@ const AddDebtorModal = ({visible, onClose, onSave}) => {
     setName('');
     setPhone('');
     setBalance('0');
-    setWhatsappMessage('Hola {name}, te contacto sobre el saldo pendiente de ${balance}.');
+    setWhatsappMessage(defaultMsg);
   };
 
   const handleClose = () => {
     setName('');
     setPhone('');
     setBalance('0');
-    setWhatsappMessage('Hola {name}, te contacto sobre el saldo pendiente de ${balance}.');
+    setWhatsappMessage(defaultMsg);
     onClose();
   };
 
@@ -114,7 +112,7 @@ const AddDebtorModal = ({visible, onClose, onSave}) => {
             </View>
 
             <View style={styles.inputGroup}>
-              <Text style={styles.label}>Teléfono *</Text>
+              <Text style={styles.label}>Teléfono</Text>
               <TextInput
                 style={styles.input}
                 placeholder="Ej: +52 1234567890"
@@ -135,6 +133,7 @@ const AddDebtorModal = ({visible, onClose, onSave}) => {
                 placeholder="0.00"
                 value={balance}
                 onChangeText={(text) => setBalance(formatAmount(text))}
+                onFocus={() => { if (balance === '0') setBalance(''); }}
                 keyboardType="numeric"
                 placeholderTextColor="#8E8E93"
               />
@@ -142,31 +141,7 @@ const AddDebtorModal = ({visible, onClose, onSave}) => {
 
             <View style={styles.inputGroup}>
               <Text style={styles.label}>Mensaje de WhatsApp</Text>
-              <TextInput
-                ref={msgInputRef}
-                style={[styles.input, styles.textArea]}
-                placeholder="Mensaje personalizado..."
-                value={whatsappMessage}
-                onChangeText={setWhatsappMessage}
-                onSelectionChange={(e) => setMsgSelection(e.nativeEvent.selection)}
-                multiline
-                numberOfLines={4}
-                placeholderTextColor="#8E8E93"
-              />
-              <View style={styles.variableButtons}>
-                <TouchableOpacity
-                  style={styles.variableButton}
-                  onPress={() => insertVariable('{name}')}>
-                  <Ionicons name="person-outline" size={14} color="#007AFF" />
-                  <Text style={styles.variableButtonText}>Nombre</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={styles.variableButton}
-                  onPress={() => insertVariable('{balance}')}>
-                  <Ionicons name="cash-outline" size={14} color="#007AFF" />
-                  <Text style={styles.variableButtonText}>Saldo</Text>
-                </TouchableOpacity>
-              </View>
+              <TemplateEditor value={whatsappMessage} onChange={setWhatsappMessage} />
             </View>
           </ScrollView>
 
@@ -240,29 +215,6 @@ const styles = StyleSheet.create({
     color: '#1C1C1E',
     borderWidth: 1,
     borderColor: '#E5E5EA',
-  },
-  textArea: {
-    height: 80,
-    textAlignVertical: 'top',
-  },
-  variableButtons: {
-    flexDirection: 'row',
-    gap: 8,
-    marginTop: 8,
-  },
-  variableButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    backgroundColor: '#E8F0FE',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 16,
-  },
-  variableButtonText: {
-    fontSize: 12,
-    color: '#007AFF',
-    fontWeight: '600',
   },
   buttonContainer: {
     flexDirection: 'row',
