@@ -18,6 +18,19 @@ import DatabaseService from '../services/DatabaseService';
 import AddJarMovementModal from './AddJarMovementModal';
 import { CATEGORIES } from './AddJarMovementModal';
 
+const EDIT_COLORS = [
+  '#007AFF', '#34C759', '#FF9500', '#FF3B30', '#5856D6',
+  '#AF52DE', '#FF2D55', '#00C7BE', '#30B0C7', '#A2845E',
+];
+
+const EDIT_ICONS = [
+  'home-outline', 'trending-up-outline', 'book-outline',
+  'game-controller-outline', 'shield-checkmark-outline', 'heart-outline',
+  'car-outline', 'restaurant-outline', 'airplane-outline', 'gift-outline',
+  'medkit-outline', 'school-outline', 'cart-outline', 'fitness-outline',
+  'musical-notes-outline', 'paw-outline', 'wallet-outline', 'cash-outline',
+];
+
 export default function JarDetail({ jar: initialJar, onClose, onJarUpdated }) {
   const insets = useSafeAreaInsets();
   const [jar, setJar] = useState(initialJar);
@@ -29,6 +42,8 @@ export default function JarDetail({ jar: initialJar, onClose, onJarUpdated }) {
   const [editName, setEditName] = useState('');
   const [editPercentage, setEditPercentage] = useState('');
   const [editBudget, setEditBudget] = useState('');
+  const [editColor, setEditColor] = useState('#007AFF');
+  const [editIcon, setEditIcon] = useState('wallet-outline');
   const [monthlySpending, setMonthlySpending] = useState(0);
 
   const goalReached = jar.goal > 0 && jar.balance >= jar.goal;
@@ -122,7 +137,7 @@ export default function JarDetail({ jar: initialJar, onClose, onJarUpdated }) {
     }
     try {
       const budget = parseFloat(editBudget) || 0;
-      await DatabaseService.updateJar(jar.id, editName.trim(), pct, jar.color, jar.icon, jar.goal, budget);
+      await DatabaseService.updateJar(jar.id, editName.trim(), pct, editColor, editIcon, jar.goal, budget);
       await refreshJar();
       setShowEditModal(false);
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
@@ -159,6 +174,8 @@ export default function JarDetail({ jar: initialJar, onClose, onJarUpdated }) {
     setEditName(jar.name);
     setEditPercentage(jar.percentage.toString());
     setEditBudget((jar.monthly_budget || 0) > 0 ? jar.monthly_budget.toString() : '');
+    setEditColor(jar.color || '#007AFF');
+    setEditIcon(jar.icon || 'wallet-outline');
     setShowEditModal(true);
   };
 
@@ -418,6 +435,44 @@ export default function JarDetail({ jar: initialJar, onClose, onJarUpdated }) {
                 placeholderTextColor="#C7C7CC"
               />
             </View>
+
+            <Text style={styles.editLabel}>Color</Text>
+            <View style={styles.editColorGrid}>
+              {EDIT_COLORS.map((color) => (
+                <TouchableOpacity
+                  key={color}
+                  style={[
+                    styles.editColorOption,
+                    { backgroundColor: color },
+                    editColor === color && styles.editColorSelected,
+                  ]}
+                  onPress={() => setEditColor(color)}
+                >
+                  {editColor === color && <Ionicons name="checkmark" size={14} color="#FFFFFF" />}
+                </TouchableOpacity>
+              ))}
+            </View>
+
+            <Text style={styles.editLabel}>Icono</Text>
+            <View style={styles.editIconGrid}>
+              {EDIT_ICONS.map((icon) => (
+                <TouchableOpacity
+                  key={icon}
+                  style={[
+                    styles.editIconOption,
+                    editIcon === icon && { backgroundColor: editColor },
+                  ]}
+                  onPress={() => setEditIcon(icon)}
+                >
+                  <Ionicons
+                    name={icon}
+                    size={18}
+                    color={editIcon === icon ? '#FFFFFF' : '#8E8E93'}
+                  />
+                </TouchableOpacity>
+              ))}
+            </View>
+
             <View style={styles.goalBtnRow}>
               <TouchableOpacity
                 style={styles.goalCancelBtn}
@@ -764,5 +819,36 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     fontSize: 16,
     color: '#1C1C1E',
+  },
+  editColorGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginBottom: 10,
+  },
+  editColorOption: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  editColorSelected: {
+    borderWidth: 2,
+    borderColor: '#1C1C1E',
+  },
+  editIconGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginBottom: 12,
+  },
+  editIconOption: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    backgroundColor: '#F2F2F7',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });

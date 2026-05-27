@@ -212,6 +212,11 @@ const DebtorCard = ({debtor, onDelete, onAddMovement, onEdit, movements, onDelet
                 <Text style={styles.movementDate}>
                   {formatDate(movement.created_at)}
                 </Text>
+                {typeof movement.balance_after === 'number' && (
+                  <Text style={styles.movementBalanceAfter}>
+                    Saldo tras movimiento: {movement.balance_after >= 0 ? '' : '-'}${Math.abs(movement.balance_after).toFixed(2)}
+                  </Text>
+                )}
                 {movement.description ? (
                   <Text style={styles.movementDescription}>
                     {movement.description}
@@ -363,6 +368,12 @@ const styles = StyleSheet.create({
   movementDate: {
     fontSize: 12,
     color: '#8E8E93',
+    marginBottom: 4,
+  },
+  movementBalanceAfter: {
+    fontSize: 12,
+    color: '#1A237E',
+    fontWeight: '600',
     marginBottom: 4,
   },
   movementDescription: {

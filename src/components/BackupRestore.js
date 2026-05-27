@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {
   Modal,
   View,
@@ -14,10 +14,29 @@ const StorageAccessFramework = FileSystem.StorageAccessFramework;
 import * as Sharing from 'expo-sharing';
 import * as DocumentPicker from 'expo-document-picker';
 import DatabaseService from '../services/DatabaseService';
+import SyncService from '../services/SyncService';
+import AuthService from '../services/AuthService';
+import {isSupabaseConfigured} from '../services/SupabaseClient';
 
 const BackupRestore = ({visible, onClose, onRestoreComplete}) => {
   const [loading, setLoading] = useState(false);
   const [statusMessage, setStatusMessage] = useState('');
+  const [currentUser, setCurrentUser] = useState(null);
+  const [remoteInfo, setRemoteInfo] = useState(null);
+
+  useEffect(() => {
+    if (!visible || !isSupabaseConfigured()) return;
+    (async () => {
+      try {
+        const u = await AuthService.getCurrentUser();
+        setCurrentUser(u);
+        if (u) {
+          const info = await SyncService.getRemoteInfo();
+          setRemoteInfo(info);
+        }
+      } catch {}
+    })();
+  }, [visible]);
 
   const handleBackupLocal = async () => {
     try {
@@ -86,6 +105,92 @@ const BackupRestore = ({visible, onClose, onRestoreComplete}) => {
         },
       ]
     );
+  };
+
+  const handleCloudPush = async () => {
+    try {
+      if (!isSupabaseConfigured()) {
+        Alert.alert('Configuración pendiente', 'Falta SUPABASE_ANON_KEY en src/config/supabase.config.js');
+        return;
+      }
+      if (!currentUser) {
+        Alert.alert('Sesión requerida', 'Inicia sesión para sincronizar');
+        return;
+      }
+      setLoading(true);
+      setStatusMessage('Subiendo respaldo a la nube...');
+      const result = await SyncService.pushBackup();
+      const info = await SyncService.getRemoteInfo();
+      setRemoteInfo(info);
+      setLoading(false);
+      setStatusMessage('');
+      Alert.alert(
+        'Sincronizado',
+        `Usuario: ${result.user_email}\nDeudores: ${result.counts.debtors}\nMovimientos: ${result.counts.movements}\nFrascos: ${result.counts.jars}\nGrupos: ${result.counts.jar_groups}`
+      );
+    } catch (error) {
+      setLoading(false);
+      setStatusMessage('');
+      Alert.alert('Error', error?.message || 'No se pudo sincronizar a la nube');
+    }
+  };
+
+  const handleCloudPull = async () => {
+    if (!isSupabaseConfigured()) {
+      Alert.alert('Configuración pendiente', 'Falta SUPABASE_ANON_KEY en src/config/supabase.config.js');
+      return;
+    }
+    if (!currentUser) {
+      Alert.alert('Sesión requerida', 'Inicia sesión para restaurar');
+      return;
+    }
+    Alert.alert(
+      'Restaurar desde la nube',
+      '⚠️ Esto reemplazará TODOS los datos locales con el respaldo en la nube de tu cuenta. ¿Continuar?',
+      [
+        {text: 'Cancelar', style: 'cancel'},
+        {
+          text: 'Continuar',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              setLoading(true);
+              setStatusMessage('Descargando respaldo...');
+              const result = await SyncService.pullBackup();
+              setLoading(false);
+              setStatusMessage('');
+              Alert.alert('Restauración exitosa', `Usuario: ${result.user_email}\nFecha backup: ${result.updated_at}`);
+              if (onRestoreComplete) onRestoreComplete();
+              onClose();
+            } catch (error) {
+              setLoading(false);
+              setStatusMessage('');
+              Alert.alert('Error', error?.message || 'No se pudo restaurar desde la nube');
+            }
+          },
+        },
+      ]
+    );
+  };
+
+  const handleSignOut = async () => {
+    Alert.alert('Cerrar sesión', '¿Seguro que quieres cerrar sesión?', [
+      {text: 'Cancelar', style: 'cancel'},
+      {
+        text: 'Cerrar sesión',
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            await AuthService.signOut();
+            setCurrentUser(null);
+            setRemoteInfo(null);
+            onClose();
+          } catch (e) {
+            Alert.alert('Error', e?.message || 'No se pudo cerrar sesión');
+          }
+        },
+      },
+    ]);
   };
 
   const pickAndRestore = async () => {
@@ -159,6 +264,54 @@ const BackupRestore = ({visible, onClose, onRestoreComplete}) => {
             </View>
           ) : (
             <View style={styles.optionsContainer}>
+              <View style={styles.userBox}>
+                <Ionicons name="person-circle" size={32} color="#1A237E" />
+                <View style={{flex: 1, marginLeft: 10}}>
+                  <Text style={styles.userLabel}>Sesión activa</Text>
+                  <Text style={styles.userEmail}>{currentUser?.email || 'Sin sesión'}</Text>
+                  {remoteInfo?.updated_at && (
+                    <Text style={styles.remoteHint}>
+                      Último respaldo en la nube: {new Date(remoteInfo.updated_at).toLocaleString()}
+                    </Text>
+                  )}
+                </View>
+                {currentUser && (
+                  <TouchableOpacity onPress={handleSignOut} style={styles.signOutBtn}>
+                    <Ionicons name="log-out-outline" size={20} color="#FF3B30" />
+                  </TouchableOpacity>
+                )}
+              </View>
+
+              <TouchableOpacity
+                style={styles.optionCard}
+                onPress={handleCloudPush}>
+                <View style={[styles.iconCircle, {backgroundColor: '#E8F0FE'}]}>
+                  <Ionicons name="cloud-upload" size={26} color="#007AFF" />
+                </View>
+                <View style={styles.optionInfo}>
+                  <Text style={styles.optionTitle}>Sincronizar a la nube</Text>
+                  <Text style={styles.optionDescription}>
+                    Sube todos tus datos (deudores, frascos, grupos, movimientos) a Supabase usando tu cuenta.
+                  </Text>
+                </View>
+                <Ionicons name="chevron-forward" size={20} color="#C7C7CC" />
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.optionCard}
+                onPress={handleCloudPull}>
+                <View style={[styles.iconCircle, {backgroundColor: '#FCE8E6'}]}>
+                  <Ionicons name="cloud-download" size={26} color="#FF3B30" />
+                </View>
+                <View style={styles.optionInfo}>
+                  <Text style={styles.optionTitle}>Restaurar desde la nube</Text>
+                  <Text style={styles.optionDescription}>
+                    Descarga el respaldo de tu cuenta en Supabase y reemplaza los datos locales.
+                  </Text>
+                </View>
+                <Ionicons name="chevron-forward" size={20} color="#C7C7CC" />
+              </TouchableOpacity>
+
               {/* Backup */}
               <TouchableOpacity
                 style={styles.optionCard}
@@ -282,6 +435,34 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#8E8E93',
     lineHeight: 16,
+  },
+  userLabel: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#8E8E93',
+    textTransform: 'uppercase',
+  },
+  userBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    padding: 12,
+    marginBottom: 12,
+  },
+  userEmail: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#1A237E',
+    marginTop: 2,
+  },
+  remoteHint: {
+    fontSize: 11,
+    color: '#8E8E93',
+    marginTop: 4,
+  },
+  signOutBtn: {
+    padding: 8,
   },
   infoBox: {
     flexDirection: 'row',

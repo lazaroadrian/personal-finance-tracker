@@ -34,6 +34,9 @@ import JarsEvolution from './src/components/JarsEvolution';
 import ReminderConfig from './src/components/ReminderConfig';
 import GroupDetail from './src/components/GroupDetail';
 import AddGroupModal from './src/components/AddGroupModal';
+import AuthScreen from './src/components/AuthScreen';
+import AuthService from './src/services/AuthService';
+import {isSupabaseConfigured} from './src/services/SupabaseClient';
 import * as Haptics from 'expo-haptics';
 
 function App() {
@@ -80,10 +83,29 @@ function App() {
   const [showReminderConfig, setShowReminderConfig] = useState(false);
   const [selectedJar, setSelectedJar] = useState(null);
   const [selectedGroup, setSelectedGroup] = useState(null);
+  const [groupRefreshVersion, setGroupRefreshVersion] = useState(0);
   const [addJarGroupId, setAddJarGroupId] = useState(null);
   const [distributeJars, setDistributeJars] = useState([]);
   const [jars, setJars] = useState([]);
   const [jarGroups, setJarGroups] = useState([]);
+  const [session, setSession] = useState(null);
+  const [authChecked, setAuthChecked] = useState(false);
+
+  useEffect(() => {
+    let unsub = () => {};
+    if (isSupabaseConfigured()) {
+      AuthService.getSession()
+        .then(s => setSession(s))
+        .catch(() => setSession(null))
+        .finally(() => setAuthChecked(true));
+      unsub = AuthService.onAuthStateChange((event, s) => {
+        setSession(s);
+      });
+    } else {
+      setAuthChecked(true);
+    }
+    return () => unsub();
+  }, []);
 
   useEffect(() => {
     initializeDatabase();
@@ -117,7 +139,23 @@ function App() {
       const movementEntries = await Promise.all(
         allDebtors.map(async (debtor) => {
           const debtorMovements = await DatabaseService.getMovementsByDebtor(debtor.id);
-          return [debtor.id, debtorMovements];
+          const withRunningBalance = debtorMovements.map((m) => ({ ...m }));
+          let currentBalance = parseFloat(debtor.balance) || 0;
+
+          withRunningBalance.forEach((movement) => {
+            movement.balance_after = currentBalance;
+
+            const amount = parseFloat(movement.amount) || 0;
+            let delta = 0;
+            if (movement.type === 'Le presté' || movement.type === 'Le cobré más' || movement.type === 'Le pagué') {
+              delta = amount;
+            } else if (movement.type === 'Me pagó' || movement.type === 'Me prestó') {
+              delta = -amount;
+            }
+            currentBalance -= delta;
+          });
+
+          return [debtor.id, withRunningBalance];
         })
       );
       const allMovements = Object.fromEntries(movementEntries);
@@ -300,6 +338,7 @@ function App() {
           updatedGroup.jar_count = stats.length;
           updatedGroup.total_balance = stats.reduce((sum, j) => sum + (j.balance || 0), 0);
           setSelectedGroup(updatedGroup);
+          setGroupRefreshVersion((prev) => prev + 1);
         }
       }
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
@@ -319,6 +358,7 @@ function App() {
       await DatabaseService.distributeIncome(distributions);
       await loadJars();
       await loadJarGroups();
+      setGroupRefreshVersion((prev) => prev + 1);
       setShowDistributeModal(false);
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       Alert.alert('Éxito', 'Ingreso distribuido en los frascos');
@@ -333,6 +373,7 @@ function App() {
       await DatabaseService.transferBetweenJars(fromJarId, toJarId, amount);
       await loadJars();
       await loadJarGroups();
+      setGroupRefreshVersion((prev) => prev + 1);
       setShowTransferModal(false);
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       Alert.alert('Éxito', 'Transferencia realizada correctamente');
@@ -500,7 +541,7 @@ function App() {
     </View>
   );
 
-  if (loading) {
+  if (loading || !authChecked) {
     return (
       <SafeAreaProvider>
         <SafeAreaView style={styles.container}>
@@ -510,6 +551,15 @@ function App() {
             <Text style={styles.loadingText}>Cargando...</Text>
           </View>
         </SafeAreaView>
+      </SafeAreaProvider>
+    );
+  }
+
+  if (isSupabaseConfigured() && !session) {
+    return (
+      <SafeAreaProvider>
+        <StatusBar barStyle="dark-content" backgroundColor="#F4F6FB" />
+        <AuthScreen onAuthSuccess={() => { /* onAuthStateChange actualiza session */ }} />
       </SafeAreaProvider>
     );
   }
@@ -529,6 +579,7 @@ function App() {
       ) : selectedGroup ? (
         <GroupDetail
           group={selectedGroup}
+          refreshVersion={groupRefreshVersion}
           onClose={() => setSelectedGroup(null)}
           onSelectJar={handleSelectJar}
           onAddJar={(groupId) => {

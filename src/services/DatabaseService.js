@@ -98,6 +98,16 @@ class DatabaseService {
         );
       `);
 
+      // Tabla de snapshots por usuario
+      await this.db.execAsync(`
+        CREATE TABLE IF NOT EXISTS "Gestor de cuentas" (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          user_key TEXT UNIQUE NOT NULL,
+          payload_json TEXT NOT NULL,
+          updated_at DATETIME
+        );
+      `);
+
       // Tabla de grupos de frascos
       await this.db.execAsync(`
         CREATE TABLE IF NOT EXISTS jar_groups (
@@ -518,6 +528,62 @@ class DatabaseService {
       return true;
     } catch (error) {
       console.log('Error importing data: ', error);
+      throw error;
+    }
+  }
+
+  async exportDataByUser(userKey) {
+    try {
+      const normalizedKey = (userKey || '').trim().toLowerCase();
+      if (!normalizedKey) {
+        throw new Error('Debes indicar un usuario');
+      }
+
+      const db = await this.getDB();
+      const payload = await this.exportData();
+      const now = this.getCurrentDateTime();
+
+      await db.runAsync(
+        'INSERT OR REPLACE INTO "Gestor de cuentas" (user_key, payload_json, updated_at) VALUES (?, ?, ?)',
+        [normalizedKey, JSON.stringify(payload), now]
+      );
+
+      return {
+        user_key: normalizedKey,
+        updated_at: now,
+      };
+    } catch (error) {
+      console.log('Error exporting by user: ', error);
+      throw error;
+    }
+  }
+
+  async importDataByUser(userKey) {
+    try {
+      const normalizedKey = (userKey || '').trim().toLowerCase();
+      if (!normalizedKey) {
+        throw new Error('Debes indicar un usuario');
+      }
+
+      const db = await this.getDB();
+      const row = await db.getFirstAsync(
+        'SELECT payload_json, updated_at FROM "Gestor de cuentas" WHERE user_key = ?',
+        [normalizedKey]
+      );
+
+      if (!row || !row.payload_json) {
+        throw new Error('No existe respaldo para ese usuario');
+      }
+
+      const data = JSON.parse(row.payload_json);
+      await this.importData(data);
+
+      return {
+        user_key: normalizedKey,
+        updated_at: row.updated_at,
+      };
+    } catch (error) {
+      console.log('Error importing by user: ', error);
       throw error;
     }
   }

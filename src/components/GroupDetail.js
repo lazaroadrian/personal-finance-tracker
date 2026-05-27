@@ -10,10 +10,13 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import DatabaseService from '../services/DatabaseService';
+import AddGroupModal from './AddGroupModal';
 
-export default function GroupDetail({ group, onClose, onSelectJar, onAddJar, onDistribute, onGroupUpdated }) {
+export default function GroupDetail({ group, refreshVersion = 0, onClose, onSelectJar, onAddJar, onDistribute, onGroupUpdated }) {
   const [jars, setJars] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [showEditGroupModal, setShowEditGroupModal] = useState(false);
+  const [groupInfo, setGroupInfo] = useState(group);
 
   const loadJars = useCallback(async () => {
     try {
@@ -27,8 +30,12 @@ export default function GroupDetail({ group, onClose, onSelectJar, onAddJar, onD
   }, [group.id]);
 
   useEffect(() => {
+    setGroupInfo(group);
+  }, [group]);
+
+  useEffect(() => {
     loadJars();
-  }, [loadJars]);
+  }, [loadJars, refreshVersion]);
 
   const totalPercentage = jars.reduce((sum, j) => sum + (j.percentage || 0), 0);
   const totalBalance = jars.reduce((sum, j) => sum + (j.balance || 0), 0);
@@ -56,21 +63,37 @@ export default function GroupDetail({ group, onClose, onSelectJar, onAddJar, onD
     );
   };
 
+  const handleEditGroup = async (groupData) => {
+    try {
+      await DatabaseService.updateJarGroup(groupInfo.id, groupData.name, groupData.color, groupData.icon);
+      const updated = await DatabaseService.getJarGroupById(groupInfo.id);
+      if (updated) {
+        setGroupInfo(updated);
+      }
+      setShowEditGroupModal(false);
+      if (onGroupUpdated) await onGroupUpdated();
+    } catch (error) {
+      Alert.alert('Error', 'No se pudo actualizar el grupo');
+    }
+  };
+
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor={group.color || '#1A237E'} />
+      <StatusBar barStyle="light-content" backgroundColor={groupInfo.color || '#1A237E'} />
 
       {/* Header */}
-      <View style={[styles.header, { backgroundColor: group.color || '#1A237E' }]}>
+      <View style={[styles.header, { backgroundColor: groupInfo.color || '#1A237E' }]}>
         <View style={styles.headerTop}>
           <TouchableOpacity onPress={onClose} style={styles.backBtn}>
             <Ionicons name="arrow-back" size={22} color="#FFFFFF" />
           </TouchableOpacity>
           <View style={styles.headerTitleContainer}>
-            <Ionicons name={group.icon || 'flask-outline'} size={20} color="#FFFFFF" />
-            <Text style={styles.headerTitle} numberOfLines={1}>{group.name}</Text>
+            <Ionicons name={groupInfo.icon || 'flask-outline'} size={20} color="#FFFFFF" />
+            <Text style={styles.headerTitle} numberOfLines={1}>{groupInfo.name}</Text>
           </View>
-          <View style={{ width: 36 }} />
+          <TouchableOpacity onPress={() => setShowEditGroupModal(true)} style={styles.backBtn}>
+            <Ionicons name="create-outline" size={20} color="#FFFFFF" />
+          </TouchableOpacity>
         </View>
         <View style={styles.headerStats}>
           <View style={styles.headerStatItem}>
@@ -183,14 +206,23 @@ export default function GroupDetail({ group, onClose, onSelectJar, onAddJar, onD
           <Text style={styles.btnText}>Distribuir ingreso</Text>
         </TouchableOpacity>
         <TouchableOpacity
-          style={[styles.addJarBtn, { backgroundColor: group.color || '#1A237E' }]}
-          onPress={() => onAddJar(group.id)}
+          style={[styles.addJarBtn, { backgroundColor: groupInfo.color || '#1A237E' }]}
+          onPress={() => onAddJar(groupInfo.id)}
           activeOpacity={0.8}
         >
           <Ionicons name="add-circle" size={18} color="#FFFFFF" />
           <Text style={styles.btnText}>Agregar frasco</Text>
         </TouchableOpacity>
       </View>
+
+      <AddGroupModal
+        visible={showEditGroupModal}
+        onClose={() => setShowEditGroupModal(false)}
+        onSave={handleEditGroup}
+        initialData={groupInfo}
+        title="Editar Grupo"
+        saveLabel="Guardar Cambios"
+      />
     </View>
   );
 }

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   StyleSheet,
   View,
@@ -26,10 +26,21 @@ const ICONS = [
   'wallet-outline', 'cash-outline',
 ];
 
-export default function AddGroupModal({ visible, onClose, onSave }) {
+export default function AddGroupModal({ visible, onClose, onSave, initialData = null, title = 'Nuevo Grupo', saveLabel = 'Crear Grupo' }) {
   const [name, setName] = useState('');
   const [selectedColor, setSelectedColor] = useState(COLORS[0]);
   const [selectedIcon, setSelectedIcon] = useState(ICONS[0]);
+
+  useEffect(() => {
+    if (!visible) return;
+    if (initialData) {
+      setName(initialData.name || '');
+      setSelectedColor(initialData.color || COLORS[0]);
+      setSelectedIcon(initialData.icon || ICONS[0]);
+    } else {
+      resetForm();
+    }
+  }, [visible, initialData]);
 
   const handleSave = () => {
     if (!name.trim()) {
@@ -63,7 +74,7 @@ export default function AddGroupModal({ visible, onClose, onSave }) {
       >
         <View style={styles.modalContent}>
           <View style={styles.modalHeader}>
-            <Text style={styles.modalTitle}>Nuevo Grupo</Text>
+            <Text style={styles.modalTitle}>{title}</Text>
             <TouchableOpacity onPress={handleClose} style={styles.closeBtn}>
               <Ionicons name="close" size={22} color="#8E8E93" />
             </TouchableOpacity>
@@ -133,7 +144,7 @@ export default function AddGroupModal({ visible, onClose, onSave }) {
           </ScrollView>
 
           <TouchableOpacity style={styles.saveBtn} onPress={handleSave} activeOpacity={0.8}>
-            <Text style={styles.saveBtnText}>Crear Grupo</Text>
+            <Text style={styles.saveBtnText}>{saveLabel}</Text>
           </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>
